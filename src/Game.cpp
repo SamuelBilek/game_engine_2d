@@ -3,6 +3,7 @@
 #include <iostream>
 
 Game::Game() {
+	isRunning = false;
 	std::cout << "Game constructor called!" << std::endl;
 }
 
@@ -16,7 +17,7 @@ void Game::Initialize() {
 		return;
 	}
 
-	SDL_Window* window = SDL_CreateWindow(
+	window = SDL_CreateWindow(
 		NULL, 
 		SDL_WINDOWPOS_CENTERED, 
 		SDL_WINDOWPOS_CENTERED, 
@@ -29,15 +30,17 @@ void Game::Initialize() {
 		return;
 	}
 
-	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
+	renderer = SDL_CreateRenderer(window, -1, 0);
 	if (!renderer) {
 		std::cerr << "Error creating SDL renderer." << std::endl;
 		return;
 	}
+
+	isRunning = true;
 }
 
 void Game::Run() {
-	while (true) {
+	while (isRunning) {
 		ProcessInput();
 		Update();
 		Render();
@@ -45,7 +48,19 @@ void Game::Run() {
 }
 
 void Game::ProcessInput() {
-
+	SDL_Event sdlEvent;
+	while (SDL_PollEvent(&sdlEvent)) {
+		switch (sdlEvent.type) {
+		case SDL_QUIT:
+			isRunning = false;
+			break;
+		case SDL_KEYDOWN:
+			if (sdlEvent.key.keysym.sym == SDLK_ESCAPE) {
+				isRunning = false;
+			}
+			break;
+		}
+	}
 }
 
 void Game::Update() {
@@ -57,5 +72,8 @@ void Game::Render() {
 }
 
 void Game::Destroy() {
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
 
 }
