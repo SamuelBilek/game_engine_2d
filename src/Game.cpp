@@ -87,7 +87,10 @@ void Game::ProcessInput() {
 
 void Game::Update() {
 	// If we are too fast, we need to waste some time before the next frame
-	while (!SDL_TICKS_PASSED(SDL_GetTicks(), miliscesPreviousFrame + MILISECS_PER_FRAME));
+	int timeToWait = MILISECS_PER_FRAME - (SDL_GetTicks() - miliscesPreviousFrame);
+	if (timeToWait > 0 && timeToWait <= MILISECS_PER_FRAME) {
+		SDL_Delay(timeToWait);
+	}
 	
 	// Store the current frame time
 	miliscesPreviousFrame = SDL_GetTicks();
