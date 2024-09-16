@@ -57,7 +57,7 @@ glm::vec2 playerVelocity;
 
 void Game::Setup() {
 	playerPosition = glm::vec2(10.0, 20.0);
-	playerVelocity = glm::vec2(1.0, 0.0);
+	playerVelocity = glm::vec2(100.0, 0.0);
 }
 
 void Game::Run() {
@@ -86,17 +86,21 @@ void Game::ProcessInput() {
 }
 
 void Game::Update() {
+	Uint32 miliscesCurrentFrame = SDL_GetTicks();
+	// Difference of time in seconds from the last frame to the current frame
+	double deltaTime = (miliscesCurrentFrame - miliscesPreviousFrame) / 1000.0;
+
+	// Store the current frame time
+	miliscesPreviousFrame = miliscesCurrentFrame;
+
 	// If we are too fast, we need to waste some time before the next frame
-	int timeToWait = MILISECS_PER_FRAME - (SDL_GetTicks() - miliscesPreviousFrame);
+	int timeToWait = MILISECS_PER_FRAME - (deltaTime * 1000); // deltaTime is in seconds
 	if (timeToWait > 0 && timeToWait <= MILISECS_PER_FRAME) {
 		SDL_Delay(timeToWait);
 	}
-	
-	// Store the current frame time
-	miliscesPreviousFrame = SDL_GetTicks();
 
-	playerPosition.x += playerVelocity.x;
-	playerPosition.y += playerVelocity.y;
+	playerPosition.x += playerVelocity.x * deltaTime;
+	playerPosition.y += playerVelocity.y * deltaTime;
 }
 
 void Game::Render() {
