@@ -472,6 +472,9 @@
     <ClInclude Include="libs\SDL2\include\SDL_video.h" />
     <ClInclude Include="libs\SDL2\include\SDL_vulkan.h" />
     <ClInclude Include="libs\sol\sol.hpp" />
+    <ClInclude Include="src\Components\TransformComponent.h" />
+    <ClInclude Include="src\ECS\ECS.h" />
+    <ClInclude Include="src\Systems\MovementSystem.h" />
     <ClInclude Include="src\Logger\Logger.h" />
     <ClInclude Include="src\Game\Game.h" />
   </ItemGroup>
@@ -638,6 +641,7 @@
     <ClCompile Include="libs\imgui\imgui_draw.cpp" />
     <ClCompile Include="libs\imgui\imgui_sdl.cpp" />
     <ClCompile Include="libs\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="src\ECS\ECS.cpp" />
     <ClCompile Include="src\Logger\Logger.cpp" />
     <ClCompile Include="src\Game\Game.cpp" />
     <ClCompile Include="src\Main.cpp" />
