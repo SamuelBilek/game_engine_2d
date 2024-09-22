@@ -64,8 +64,70 @@ void System::RequireComponent() {
 	componentSignature.set(componentId);
 }
 
-class Registry {
+// Pool
+// Vector that contains objects of a specific type
+class IPool {
+public:
+	virtual ~IPool();
 
+};
+
+template <typename T>
+class Pool : public IPool {
+private:
+	std::vector<T> data;
+
+public:
+	Pool(int size = 100) {
+		data.reserve(size);
+	}
+
+	virtual ~Pool() = default;
+
+	bool IsEmpty() const {
+		return data.empty();
+	}
+
+	int GetSize() const {
+		return data.size();
+	}
+
+	int Resize(int size) {
+		data.reserve(size);
+	}
+
+	void Clear() {
+		data.clear();
+	}
+
+	void Add(T object) {
+		data.push_back(object);
+	}
+
+	void Set(int index, T object) {
+		data[index] = object;
+	}
+
+	T& Get(int index) const {
+		return static_cast<T&>(data[index]);
+	}
+
+	T& operator [](int index) const {
+		return Get(index);
+	}
+};
+
+// Registry
+// Manages creation and destruction of entities,
+// adding systems and components
+class Registry {
+private:
+	int numEntities = 0;
+
+	// Vector of component pools. Each pool contains all instances of a specific component type
+	// Vector index is the component id
+	// Pool index is the entity id
+	std::vector<IPool*> componentPools;
 };
 
 #endif
