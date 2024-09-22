@@ -6,25 +6,23 @@ int Entity::GetId() const {
 }
 
 void System::AddEntityToSystem(Entity entity) {
-	int entityId = entity.GetId();
 	for (auto& e : entities) {
-		if (e.GetId() == entityId) {
+		if (e == entity) {
 			Logger::Log("Entity already exists in system.");
 			return;
 		}
 	}
-	Logger::Log("Adding entity with id: " + std::to_string(entityId) + " to system.");
+	Logger::Log("Adding entity with id: " + std::to_string(entity.GetId()) + " to system.");
 	entities.push_back(entity);
 }
 
 void System::RemoveEntityFromSystem(Entity entity) {
-	int entityId = entity.GetId();
-	Logger::Log("Removing entity with id: " + std::to_string(entityId) + " from system.");
+	Logger::Log("Removing entity with id: " + std::to_string(entity.GetId()) + " from system.");
 	entities.erase(std::remove_if(
 		entities.begin(), 
-		entities.end(), 
-		[&entityId](Entity e) {
-			return e.GetId() == entityId;
+		entities.end(),
+		[&entity](Entity& e) {
+			return e == entity;
 		}
 	), entities.end());
 }

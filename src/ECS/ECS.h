@@ -32,6 +32,10 @@ private:
 public:
 	Entity(int id) : id(id) {}
 	int GetId() const;
+	// Overload the == operator to compare entities
+	bool operator ==(const Entity& other) const {
+		return id == other.id;
+	}
 };
 
 // System
