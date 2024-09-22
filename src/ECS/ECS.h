@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <bitset>
+#include <unordered_map>
+#include <typeindex>
 
 const int MAX_COMPONENTS = 32;
 
@@ -128,6 +130,29 @@ private:
 	// Vector index is the component id
 	// Pool index is the entity id
 	std::vector<IPool*> componentPools;
+
+	// Vector of component signatures used by entities
+	// Vector index is the entity id
+	std::vector<Signature> entityComponentSignatures;
+
+	std::unordered_map<std::type_index, System*> systems;
+
+public:
+	Registry() = default;
+	
+	// TODO:
+	// CreateEntity
+	// KillEntity
+
+	// AddComponent
+	// RemoveComponent
+	// HasComponent
+	// GetComponent
+
+	// AddSystem
+	// RemoveSystem
+	// HasSystem
+	// GetSystem
 };
 
 #endif
