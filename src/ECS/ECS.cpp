@@ -33,3 +33,19 @@ std::vector<Entity> System::GetSystemEntities() const {
 const Signature& System::GetComponentSignature() const {
 	return componentSignature;
 }
+
+Entity Registry::CreateEntity() {
+	int entityId = numEntities++;
+
+	Entity entity(entityId);
+	entitiesToBeAdded.insert(entity);
+
+	Logger::Log("Created entity with id: " + std::to_string(entityId));
+
+	return entity;
+}
+
+void Registry::Update() {
+	// TODO: Add entities that are waiting to be added to entities vector
+	// TODO: Remove entities that are waiting to be killed from entities vector
+}

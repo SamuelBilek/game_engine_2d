@@ -2,6 +2,7 @@
 #define ECS_H
 
 #include <vector>
+#include <set>
 #include <bitset>
 #include <unordered_map>
 #include <typeindex>
@@ -34,9 +35,23 @@ private:
 public:
 	Entity(int id) : id(id) {}
 	int GetId() const;
+
 	// Overload the == operator to compare entities
 	bool operator ==(const Entity& other) const {
 		return id == other.id;
+	}
+
+	bool operator !=(const Entity& other) const {
+		return !(id == other.id);
+	}
+
+	// Set insert requieres the insterted object to work with < comparison
+	bool operator <(const Entity& other) const {
+		return id < other.id;
+	}
+
+	bool operator >(const Entity& other) const {
+		return id > other.id;
 	}
 };
 
@@ -137,11 +152,19 @@ private:
 
 	std::unordered_map<std::type_index, System*> systems;
 
+	//Sets of entities to be added and killed in the next frame
+	std::set<Entity> entitiesToBeAdded;
+	std::set<Entity> entitiesToBeKilled;
+
+
 public:
 	Registry() = default;
+
+	void Update();
+	
+	Entity CreateEntity();
 	
 	// TODO:
-	// CreateEntity
 	// KillEntity
 
 	// AddComponent
