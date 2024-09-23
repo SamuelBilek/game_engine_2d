@@ -96,7 +96,7 @@ private:
 
 public:
 	Pool(int size = 100) {
-		data.reserve(size);
+		data.resize(size);
 	}
 
 	virtual ~Pool() = default;
@@ -110,7 +110,7 @@ public:
 	}
 
 	int Resize(int size) {
-		data.reserve(size);
+		data.resize(size);
 	}
 
 	void Clear() {
@@ -162,12 +162,15 @@ public:
 
 	void Update();
 	
+	// Entity management
 	Entity CreateEntity();
+
+	// Component management
+	template <typename TComponent, typename ...TArgs> void AddComponent(Entity entity, TArgs&& ...args);
 	
 	// TODO:
 	// KillEntity
 
-	// AddComponent
 	// RemoveComponent
 	// HasComponent
 	// GetComponent
@@ -177,5 +180,33 @@ public:
 	// HasSystem
 	// GetSystem
 };
+
+template <typename TComponent, typename ...TArgs>
+void Registry::AddComponent(Entity entity, TArgs&& ...args) {
+	const int componentId = Component<TComponent>::GetID();
+	const int entityId = entity.GetId();
+
+	// Resize component pools if needed
+	if (componentPools.size() <= componentId) {
+		componentPools.resize(componentId + 1);
+	}
+
+	if (!componentPools[componentId]) {
+		Pool<TComponent>* newPool = new Pool<TComponent>();
+		componentPools[componentId] = newPool;
+	}
+
+	Pool<TComponent>* componentPool = static_cast<Pool<TComponent>*>(componentPools[componentId]);
+	
+	if (componentPool->GetSize() <= entityId) {
+		componentPool->Resize(numEntities);
+	}
+
+	TComponent newComponent(std::forward<TArgs>(args)...);
+
+	componentPool->Set(entityId, newComponent);
+
+	entityComponentSignatures[entityId].set(componentId);
+}
 
 #endif
