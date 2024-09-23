@@ -166,13 +166,13 @@ public:
 	Entity CreateEntity();
 
 	// Component management
-	template <typename TComponent, typename ...TArgs> void AddComponent(Entity entity, TArgs&& ...args);
+	template <typename TComponent, typename ...TArgs> void AddComponent(Entity& entity, TArgs&& ...args);
+	template <typename TComponent> void RemoveComponent(Entity& entity);
+	template <typename TComponent> bool HasComponent(Entity& entity) const;
 	
 	// TODO:
 	// KillEntity
 
-	// RemoveComponent
-	// HasComponent
 	// GetComponent
 
 	// AddSystem
@@ -182,7 +182,7 @@ public:
 };
 
 template <typename TComponent, typename ...TArgs>
-void Registry::AddComponent(Entity entity, TArgs&& ...args) {
+void Registry::AddComponent(Entity& entity, TArgs&& ...args) {
 	const int componentId = Component<TComponent>::GetID();
 	const int entityId = entity.GetId();
 
@@ -207,6 +207,23 @@ void Registry::AddComponent(Entity entity, TArgs&& ...args) {
 	componentPool->Set(entityId, newComponent);
 
 	entityComponentSignatures[entityId].set(componentId);
+}
+
+template <typename TComponent>
+void Registry::RemoveComponent(Entity& entity) {
+	const int componentId = Component<TComponent>::GetID();
+	const int entityId = entity.GetId();
+
+	// No need to physically remove the component from the pool
+	entityComponentSignatures[entityId].set(componentId, false);
+}
+
+template <typename TComponent>
+bool Registry::HasComponent(Entity& entity) const {
+	const int componentId = Component<TComponent>::GetID();
+	const int entityId = entity.GetId();
+
+	return entityComponentSignatures[entityId].test(componentId);
 }
 
 #endif
