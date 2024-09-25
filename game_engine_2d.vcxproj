@@ -472,6 +472,7 @@
     <ClInclude Include="libs\SDL2\include\SDL_video.h" />
     <ClInclude Include="libs\SDL2\include\SDL_vulkan.h" />
     <ClInclude Include="libs\sol\sol.hpp" />
+    <ClInclude Include="src\Components\RigidBodyComponent.h" />
     <ClInclude Include="src\Components\TransformComponent.h" />
     <ClInclude Include="src\ECS\ECS.h" />
     <ClInclude Include="src\Systems\MovementSystem.h" />

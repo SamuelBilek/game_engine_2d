@@ -1,6 +1,7 @@
 #ifndef ECS_H
 #define ECS_H
 
+#include "../Logger/Logger.h"
 #include <vector>
 #include <set>
 #include <bitset>
@@ -86,7 +87,7 @@ void System::RequireComponent() {
 // Vector that contains objects of a specific type
 class IPool {
 public:
-	virtual ~IPool();
+	virtual ~IPool() = default;
 
 };
 
@@ -110,7 +111,7 @@ public:
 		return data.size();
 	}
 
-	int Resize(int size) {
+	void Resize(int size) {
 		data.resize(size);
 	}
 
@@ -212,6 +213,8 @@ void Registry::AddComponent(Entity& entity, TArgs&& ...args) {
 	componentPool->Set(entityId, newComponent);
 
 	entityComponentSignatures[entityId].set(componentId);
+
+	Logger::Log("Component ID: " + std::to_string(componentId) + " was added to entity ID: " + std::to_string(entityId));
 }
 
 template <typename TComponent>
