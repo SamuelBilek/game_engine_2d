@@ -135,7 +135,7 @@ public:
 		data[index] = object;
 	}
 
-	T& Get(int index) const {
+	T& Get(int index) {
 		return static_cast<T&>(data[index]);
 	}
 
@@ -182,10 +182,10 @@ public:
 	Entity CreateEntity();
 
 	// Component management
-	template <typename TComponent, typename ...TArgs> void AddComponent(Entity& entity, TArgs&& ...args);
-	template <typename TComponent> void RemoveComponent(Entity& entity);
-	template <typename TComponent> bool HasComponent(Entity& entity) const;
-	template <typename TComponent> TComponent& GetComponent(Entity& entity) const;
+	template <typename TComponent, typename ...TArgs> void AddComponent(Entity entity, TArgs&& ...args);
+	template <typename TComponent> void RemoveComponent(Entity entity);
+	template <typename TComponent> bool HasComponent(Entity entity) const;
+	template <typename TComponent> TComponent& GetComponent(Entity entity) const;
 	
 	// TODO:
 	// KillEntity
@@ -203,7 +203,7 @@ public:
 };
 
 template <typename TComponent, typename ...TArgs>
-void Registry::AddComponent(Entity& entity, TArgs&& ...args) {
+void Registry::AddComponent(Entity entity, TArgs&& ...args) {
 	const int componentId = Component<TComponent>::GetID();
 	const int entityId = entity.GetId();
 
@@ -238,7 +238,7 @@ void Entity::AddComponent(TArgs&& ...args) {
 }
 
 template <typename TComponent>
-void Registry::RemoveComponent(Entity& entity) {
+void Registry::RemoveComponent(Entity entity) {
 	const int componentId = Component<TComponent>::GetID();
 	const int entityId = entity.GetId();
 
@@ -254,7 +254,7 @@ void Entity::RemoveComponent() {
 }
 
 template <typename TComponent>
-bool Registry::HasComponent(Entity& entity) const {
+bool Registry::HasComponent(Entity entity) const {
 	const int componentId = Component<TComponent>::GetID();
 	const int entityId = entity.GetId();
 
@@ -267,7 +267,7 @@ bool Entity::HasComponent() const {
 }
 
 template <typename TComponent>
-TComponent& Registry::GetComponent(Entity& entity) const {
+TComponent& Registry::GetComponent(Entity entity) const {
 	const int componentId = Component<TComponent>::GetID();
 	const int entityId = entity.GetId();
 

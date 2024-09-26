@@ -3,6 +3,7 @@
 #include "../ECS/ECS.h"
 #include "../Components/TransformComponent.h"
 #include "../Components/RigidBodyComponent.h"
+#include "../Systems/MovementSystem.h"
 #include "SDL.h"
 #include "SDL_image.h"
 #include <glm/glm.hpp>
@@ -58,13 +59,14 @@ void Game::Initialize() {
 }
 
 void Game::Setup() {
+	registry->AddSystem<MovementSystem>();
+
 	// Create an entity
 	Entity tank = registry->CreateEntity();
 
 	// Add components to the entity
 	tank.AddComponent<TransformComponent>(glm::vec2(10.0, 30.0), glm::vec2(1.0, 1.0), glm::vec2(0.0, 0.0));
 	tank.AddComponent<RigidBodyComponent>(glm::vec2(50.0, 0.0));
-	tank.RemoveComponent<TransformComponent>();
 	
 }
 
@@ -106,6 +108,12 @@ void Game::Update() {
 	if (timeToWait > 0 && timeToWait <= MILISECS_PER_FRAME) {
 		SDL_Delay(timeToWait);
 	}
+
+	// Ask all the systems to update
+	registry->GetSystem<MovementSystem>().Update(deltaTime);
+
+	// Update the registry to create and destroy entities that are pending
+	registry->Update();
 
 	// TODO:
 	// movementSystem.Update();
