@@ -10,6 +10,7 @@
 #include "SDL_image.h"
 #include <glm/glm.hpp>
 #include <iostream>
+#include <fstream>
 
 Game::Game() {
 	isRunning = false;
@@ -69,8 +70,41 @@ void Game::LoadLevel(int level) {
 	// Adding assets to the asset store
 	assetStore->AddTexture(renderer, "tank-image", "./assets/images/tank-panther-right.png");
 	assetStore->AddTexture(renderer, "truck-image", "./assets/images/truck-ford-right.png");
+	assetStore->AddTexture(renderer, "tilemap-image", "./assets/tilemaps/jungle.png");
 
-	// TODO: Load tilemap
+	// Load tilemap
+	int tileSize = 32;
+	double tileScale = 2.5;
+	int mapNumCols = 25;
+	int mapNumRows = 20;
+
+	std::fstream mapFile;
+	mapFile.open("./assets/tilemaps/jungle.map");
+	if (!mapFile) {
+		Logger::Err("Error loading tilemap file.");
+		return;
+	}
+	else {
+		for (int row = 0; row < mapNumRows; row++) {
+			for (int col = 0; col < mapNumCols; col++) {
+				char ch;
+				mapFile.get(ch);
+				int sourceRectY = atoi(&ch) * tileSize;
+				mapFile.get(ch);
+				int sourceRectX = atoi(&ch) * tileSize;
+				mapFile.ignore();
+
+				Entity tile = registry->CreateEntity();
+				tile.AddComponent<TransformComponent>(
+					glm::vec2(col * tileSize * tileScale, row * tileSize * tileScale),
+					glm::vec2(tileScale, tileScale),
+					0.0
+				);
+				tile.AddComponent<SpriteComponent>("tilemap-image", tileSize, tileSize, sourceRectX, sourceRectY);
+			}
+		}
+		mapFile.close();
+	}
 	
 	// Create an entity
 	Entity tank = registry->CreateEntity();
