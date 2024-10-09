@@ -7,6 +7,16 @@
 #include "../Components/TransformComponent.h"
 #include "../Components/SpriteComponent.h"
 #include "SDL.h"
+#include <vector>
+#include <algorithm>
+
+
+// Helper struct for sorting by zIndex
+struct RenderableEntity 
+{
+	TransformComponent transformComponent;
+	SpriteComponent spriteComponent;
+};
 
 
 class RenderSystem : public System
@@ -20,10 +30,25 @@ public:
 
 	void Update(SDL_Renderer* renderer, std::unique_ptr<AssetStore>& assetStore)
 	{
+		// Sorting by zIndex
+		std::vector<RenderableEntity> renderableEntities;
+
 		for (auto& entity : GetSystemEntities())
 		{
-			auto& transform = entity.GetComponent<TransformComponent>();
-			const auto sprite = entity.GetComponent<SpriteComponent>();
+			RenderableEntity renderableEntity;
+			renderableEntity.transformComponent = entity.GetComponent<TransformComponent>();
+			renderableEntity.spriteComponent = entity.GetComponent<SpriteComponent>();
+
+			renderableEntities.emplace_back(renderableEntity);
+		}
+		std::sort(renderableEntities.begin(), renderableEntities.end(), [](const RenderableEntity& a, const RenderableEntity& b) {
+			return a.spriteComponent.zIndex < b.spriteComponent.zIndex;
+		});
+		
+		for (auto& entity : renderableEntities)
+		{
+			const auto transform = entity.transformComponent;
+			const auto sprite = entity.spriteComponent;
 
 			// Set the source rectangle of our original sprite texture
 			SDL_Rect srcRect = sprite.srcRect;
