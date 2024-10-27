@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <typeindex>
 #include <memory>
+#include <deque>
 
 const int MAX_COMPONENTS = 32;
 
@@ -55,6 +56,8 @@ public:
 	bool operator >(const Entity& other) const {
 		return id > other.id;
 	}
+
+	void Kill();
 
 	template<typename TComponent, typename ...TArgs> void AddComponent(TArgs&& ...args);
 	template<typename TComponent> void RemoveComponent();
@@ -166,6 +169,9 @@ private:
 	std::set<Entity> entitiesToBeAdded;
 	std::set<Entity> entitiesToBeKilled;
 
+	// Queue of free entity ids that were previously removed
+	std::deque<int> freeIds;
+
 
 public:
 	Registry() {
@@ -180,17 +186,13 @@ public:
 	
 	// Entity management
 	Entity CreateEntity();
+	void KillEntity(Entity entity);
 
 	// Component management
 	template <typename TComponent, typename ...TArgs> void AddComponent(Entity entity, TArgs&& ...args);
 	template <typename TComponent> void RemoveComponent(Entity entity);
 	template <typename TComponent> bool HasComponent(Entity entity) const;
 	template <typename TComponent> TComponent& GetComponent(Entity entity) const;
-	
-	// TODO:
-	// KillEntity
-
-	// GetComponent
 
 	// System management
 	template <typename TSystem, typename ...TArgs> void AddSystem(TArgs&& ...args);
@@ -198,8 +200,9 @@ public:
 	template <typename TSystem> bool HasSystem() const;
 	template <typename TSystem> TSystem& GetSystem() const;
 
-	// Checks the signature of the entity and adds it to the systems that are interested in it
+	// Add and remove entities from their systems
 	void AddEntityToSystems(Entity entity);
+	void RemoveEntityFromSystems(Entity entity);
 };
 
 template <typename TComponent, typename ...TArgs>

@@ -7,6 +7,10 @@ int Entity::GetId() const {
 	return id;
 }
 
+void Entity::Kill() {
+	registry->KillEntity(*this);
+}
+
 void System::AddEntityToSystem(Entity entity) {
 	for (auto& e : entities) {
 		if (e == entity) {
@@ -37,19 +41,31 @@ const Signature& System::GetComponentSignature() const {
 }
 
 Entity Registry::CreateEntity() {
-	int entityId = numEntities++;
+	int entityId;
+
+	if (freeIds.empty()) {
+		entityId = numEntities++;
+		if (entityId >= entityComponentSignatures.size()) {
+			entityComponentSignatures.resize(entityId + 1);
+		}
+	}
+	else {
+		entityId = freeIds.front();
+		freeIds.pop_front();
+	}
 
 	Entity entity(entityId);
 	entity.registry = this;
 	entitiesToBeAdded.insert(entity);
 
-	if (entityId >= entityComponentSignatures.size()) {
-		entityComponentSignatures.resize(entityId + 1);
-	}
-
 	Logger::Log("Created entity with id: " + std::to_string(entityId));
 
 	return entity;
+}
+
+void Registry::KillEntity(Entity entity) {
+	Logger::Log("Killing entity with id: " + std::to_string(entity.GetId()));
+	entitiesToBeKilled.insert(entity);
 }
 
 void Registry::AddEntityToSystems(Entity entity) {
@@ -66,6 +82,12 @@ void Registry::AddEntityToSystems(Entity entity) {
 	}
 }
 
+void Registry::RemoveEntityFromSystems(Entity entity) {
+	for (auto& system : systems) {
+		system.second->RemoveEntityFromSystem(entity);
+	}
+}
+
 void Registry::Update() {
 	// Add entities that are waiting to be added to entities vector
 	for (auto entity : entitiesToBeAdded) {
@@ -73,5 +95,15 @@ void Registry::Update() {
 	}
 	entitiesToBeAdded.clear();
 	
-	// TODO: Remove entities that are waiting to be killed from entities vector
+	// Remove entities that are waiting to be killed from entities vector
+	for (auto entity : entitiesToBeKilled) {
+		RemoveEntityFromSystems(entity);
+		int entityId = entity.GetId();
+
+		entityComponentSignatures[entityId].reset();
+
+		// Make the entity id available for reuse
+		freeIds.push_back(entityId);
+	}
+	entitiesToBeKilled.clear();
 }

@@ -39,6 +39,7 @@ public:
 				)) {
 					Logger::Log("Entity " + std::to_string(entity.GetId()) + " is colliding with entity " + std::to_string(otherEntity.GetId()));
 					// TODO: Dispatch collision event
+
 				}
 			}
 		}
