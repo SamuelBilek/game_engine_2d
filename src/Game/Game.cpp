@@ -11,6 +11,7 @@
 #include "../Systems/AnimationSystem.h"
 #include "../Systems/CollisionSystem.h"
 #include "../Systems/RenderCollisionSystem.h"
+#include "../Systems/DamageSystem.h"
 #include "SDL.h"
 #include "SDL_image.h"
 #include <glm/glm.hpp>
@@ -23,6 +24,7 @@ Game::Game() {
 	Logger::Log("Game constructor called!");
 	registry = std::make_unique<Registry>();
 	assetStore = std::make_unique<AssetStore>();
+	eventBus = std::make_unique<EventBus>();
 }
 
 Game::~Game() {
@@ -75,6 +77,7 @@ void Game::LoadLevel(int level) {
 	registry->AddSystem<AnimationSystem>();
 	registry->AddSystem<CollisionSystem>();
 	registry->AddSystem<RenderCollisionSystem>();
+	registry->AddSystem<DamageSystem>();
 
 	// Adding assets to the asset store
 	assetStore->AddTexture(renderer, "tank-image", "./assets/images/tank-panther-right.png");
@@ -131,7 +134,7 @@ void Game::LoadLevel(int level) {
 	radar.AddComponent<AnimationComponent>(8, 8, true);
 	
 	Entity tank = registry->CreateEntity();
-	tank.AddComponent<TransformComponent>(glm::vec2(100.0, 10.0), glm::vec2(1.0, 1.0), 0.0);
+	tank.AddComponent<TransformComponent>(glm::vec2(500.0, 10.0), glm::vec2(1.0, 1.0), 0.0);
 	tank.AddComponent<RigidBodyComponent>(glm::vec2(-30.0, 0.0));
 	tank.AddComponent<SpriteComponent>("tank-image", 32, 32, 2);
 	tank.AddComponent<BoxColliderComponent>(32, 32);
@@ -180,22 +183,28 @@ void Game::Update() {
 	// Difference of time in seconds from the last frame to the current frame
 	double deltaTime = (miliscesCurrentFrame - miliscesPreviousFrame) / 1000.0;
 
-	// Store the current frame time
-	miliscesPreviousFrame = miliscesCurrentFrame;
-
 	// If we are too fast, we need to waste some time before the next frame
 	int timeToWait = MILISECS_PER_FRAME - (deltaTime * 1000); // deltaTime is in seconds
 	if (timeToWait > 0 && timeToWait <= MILISECS_PER_FRAME) {
 		SDL_Delay(timeToWait);
 	}
 
-	// Update all systems that need an update
-	registry->GetSystem<MovementSystem>().Update(deltaTime);
-	registry->GetSystem<AnimationSystem>().Update();
-	registry->GetSystem<CollisionSystem>().Update();
+	// Store the current frame time
+	miliscesPreviousFrame = miliscesCurrentFrame;
+
+	// Reset all event handlers for the current frame
+	eventBus->Reset();
+
+	// Perform the subscription of the events for all systems
+	registry->GetSystem<DamageSystem>().SubscribeToEvents(eventBus);
 
 	// Update the registry to create and destroy entities that are pending
 	registry->Update();
+	
+	// Update all systems that need an update
+	registry->GetSystem<MovementSystem>().Update(deltaTime);
+	registry->GetSystem<AnimationSystem>().Update();
+	registry->GetSystem<CollisionSystem>().Update(eventBus);
 }
 
 void Game::Render() {
