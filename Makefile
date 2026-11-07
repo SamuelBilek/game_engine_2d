@@ -2,6 +2,8 @@ CXX = g++
 
 DIST_DIR = dist
 
+ASSET_DIR = assets
+
 LIBS_DIR = libs
 SDL_DIR = $(LIBS_DIR)/SDL2
 GLM_DIR = $(LIBS_DIR)/glm
@@ -34,6 +36,9 @@ build:
 
 	cp -r $(SDL_DIR)/bin/* $(DIST_DIR)/
 	cp -r $(LUA_DIR)/*.dll $(DIST_DIR)/
+
+	mkdir -p $(DIST_DIR)/$(ASSET_DIR)
+	cp -r $(ASSET_DIR)/* $(DIST_DIR)/$(ASSET_DIR)/
 
 run:
 	./$(DIST_DIR)/gameengine.exe
