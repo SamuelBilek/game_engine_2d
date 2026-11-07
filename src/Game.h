@@ -2,14 +2,18 @@
 
 #include <SDL.h>
 
+inline constexpr int FPS{60};
+inline constexpr int MILISECS_PER_FRAME{1000 / FPS};
+
 class Game
 {
-private:
+  private:
     bool m_isRunning{false};
-    SDL_Window *m_window{nullptr};
-    SDL_Renderer *m_renderer{nullptr};
+    int m_milisecsPreviousFrame{0};
+    SDL_Window* m_window{nullptr};
+    SDL_Renderer* m_renderer{nullptr};
 
-public:
+  public:
     Game();
     ~Game();
     void Initialize();

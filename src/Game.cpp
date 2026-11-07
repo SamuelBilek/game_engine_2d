@@ -1,10 +1,10 @@
 #include "Game.h"
 #include <SDL.h>
 #include <SDL_image.h>
+#include <glm.hpp>
 #include <iostream>
 
-Game::Game()
-    : m_isRunning{false}
+Game::Game() : m_isRunning{false}
 {
     std::cout << "Game constructor called!" << std::endl;
 }
@@ -23,13 +23,8 @@ void Game::Initialize()
     SDL_GetCurrentDisplayMode(0, &displayMode);
     windowWidth = displayMode.w;
     windowHeight = displayMode.h;
-    m_window = SDL_CreateWindow(
-        nullptr,
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        windowWidth,
-        windowHeight,
-        SDL_WINDOW_BORDERLESS);
+    m_window = SDL_CreateWindow(nullptr, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight,
+                                SDL_WINDOW_BORDERLESS);
 
     if (!m_window)
     {
@@ -37,10 +32,8 @@ void Game::Initialize()
         return;
     }
 
-    m_renderer = {SDL_CreateRenderer(
-        m_window,
-        -1,
-        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)}; // GPU acc + Vsync
+    m_renderer = {
+        SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)}; // GPU acc + Vsync
     if (!m_renderer)
     {
         std::cerr << "Error creating SDL Renderer." << std::endl;
@@ -71,13 +64,29 @@ void Game::ProcessInput()
     }
 }
 
+glm::vec2 playerPosition{};
+glm::vec2 playerVelocity{};
+
 void Game::Setup()
 {
+    playerPosition = glm::vec2(10.0, 20.0);
+    playerVelocity = glm::vec2(100.0, 0.0);
 }
 
 void Game::Update()
 {
-    // TODO: Update game objects
+    int timeToWait{MILISECS_PER_FRAME - static_cast<int>(SDL_GetTicks() - m_milisecsPreviousFrame)};
+    if (timeToWait > 0 && timeToWait <= MILISECS_PER_FRAME)
+    {
+        SDL_Delay(timeToWait);
+    }
+
+    double deltaTime{(SDL_GetTicks() - m_milisecsPreviousFrame) / 1000.0};
+
+    m_milisecsPreviousFrame = SDL_GetTicks();
+
+    playerPosition.x += playerVelocity.x * deltaTime;
+    playerPosition.y += playerVelocity.y * deltaTime;
 }
 
 void Game::Render()
@@ -86,11 +95,11 @@ void Game::Render()
     SDL_RenderClear(m_renderer);
 
     // Draw a PNG texture
-    SDL_Surface *surface{IMG_Load("./assets/images/tank-tiger-right.png")};
-    SDL_Texture *texture{SDL_CreateTextureFromSurface(m_renderer, surface)};
+    SDL_Surface* surface{IMG_Load("./assets/images/tank-tiger-right.png")};
+    SDL_Texture* texture{SDL_CreateTextureFromSurface(m_renderer, surface)};
     SDL_FreeSurface(surface);
 
-    SDL_Rect dstRect{10, 10, 32, 32};
+    SDL_Rect dstRect{static_cast<int>(playerPosition.x), static_cast<int>(playerPosition.y), 32, 32};
     // Copy entire source texture into dstRect
     SDL_RenderCopy(m_renderer, texture, nullptr, &dstRect);
     SDL_DestroyTexture(texture);
