@@ -1,3 +1,5 @@
+#include "../Logger/Logger.h"
+
 #include "Game.h"
 #include <SDL.h>
 #include <SDL_image.h>
@@ -6,10 +8,11 @@
 
 Game::Game() : m_isRunning{false}
 {
-    std::cout << "Game constructor called!" << std::endl;
+    Logger::Log("Game constructor called!");
 }
 Game::~Game()
 {
+    Logger::Log("Game destructor called!");
 }
 void Game::Initialize()
 {
@@ -28,7 +31,7 @@ void Game::Initialize()
 
     if (!m_window)
     {
-        std::cerr << "Error creating SDL window." << std::endl;
+        Logger::Err("Error creating SDL window.");
         return;
     }
 
@@ -36,7 +39,7 @@ void Game::Initialize()
         SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)}; // GPU acc + Vsync
     if (!m_renderer)
     {
-        std::cerr << "Error creating SDL Renderer." << std::endl;
+        Logger::Err("Error creating SDL Renderer.");
     }
 
     SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);

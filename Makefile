@@ -1,9 +1,9 @@
 CXX = g++
+SRC = $(shell find src -name '*.cpp')
+EXEC_NAME = gameengine.exe
 
 DIST_DIR = dist
-
 ASSET_DIR = assets
-
 LIBS_DIR = libs
 SDL_DIR = $(LIBS_DIR)/SDL2
 GLM_DIR = $(LIBS_DIR)/glm
@@ -15,7 +15,7 @@ DBGFLAGS = -g -O0
 
 # We provide both the top level libs dir and individual subdirs
 # We want to include like <sol.hpp> but some library code uses <sol/sol.hpp> etc.
-CXXFLAGS = -std=c++20 -Wall \
+CXXFLAGS = -std=c++20 -Wall -Wfatal-errors \
             $(DBGFLAGS)\
 		   -I$(LIBS_DIR) \
            -I$(GLM_DIR) \
@@ -32,7 +32,7 @@ LDLIBS = $(LD_SDL) -llua54
 build:
 	mkdir -p $(DIST_DIR)
 
-	$(CXX) $(CXXFLAGS) src/*.cpp $(LDFLAGS) $(LDLIBS) -o $(DIST_DIR)/gameengine.exe
+	$(CXX) $(CXXFLAGS) $(SRC) $(LDFLAGS) $(LDLIBS) -o $(DIST_DIR)/$(EXEC_NAME)
 
 	cp -r $(SDL_DIR)/bin/* $(DIST_DIR)/
 	cp -r $(LUA_DIR)/*.dll $(DIST_DIR)/
@@ -41,7 +41,7 @@ build:
 	cp -r $(ASSET_DIR)/* $(DIST_DIR)/$(ASSET_DIR)/
 
 run:
-	./$(DIST_DIR)/gameengine.exe
+	./$(DIST_DIR)/$(EXEC_NAME)
 
 clean:
 	rm -rf $(DIST_DIR)
