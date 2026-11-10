@@ -1,6 +1,8 @@
 #pragma once
 
+#include "../ECS/ECS.h"
 #include <SDL.h>
+#include <memory>
 
 inline constexpr int FPS{60};
 inline constexpr int MILISECS_PER_FRAME{1000 / FPS};
@@ -12,6 +14,8 @@ class Game
     int m_milisecsPreviousFrame{0};
     SDL_Window* m_window{nullptr};
     SDL_Renderer* m_renderer{nullptr};
+
+    std::unique_ptr<Registry> m_registry{};
 
   public:
     Game();

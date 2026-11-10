@@ -1,12 +1,17 @@
-#include "../Logger/Logger.h"
-
 #include "Game.h"
+#include "../ECS/Components/RigidBodyComponent.h"
+#include "../ECS/Components/SpriteComponent.h"
+#include "../ECS/Components/TransformComponent.h"
+#include "../ECS/ECS.h"
+#include "../ECS/Systems/MovementSystem.h"
+#include "../ECS/Systems/RenderSystem.h"
+#include "../Logger/Logger.h"
 #include <SDL.h>
 #include <SDL_image.h>
-#include <glm.hpp>
 #include <iostream>
+#include <memory>
 
-Game::Game() : m_isRunning{false}
+Game::Game() : m_isRunning{false}, m_registry{std::make_unique<Registry>()}
 {
     Logger::Log("Game constructor called!");
 }
@@ -18,7 +23,7 @@ void Game::Initialize()
 {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
-        std::cerr << "Error initializing SDL." << std::endl;
+        Logger::Err("Error initializing SDL.");
         return;
     }
 
@@ -67,13 +72,20 @@ void Game::ProcessInput()
     }
 }
 
-glm::vec2 playerPosition{};
-glm::vec2 playerVelocity{};
-
 void Game::Setup()
 {
-    playerPosition = glm::vec2(10.0, 20.0);
-    playerVelocity = glm::vec2(100.0, 0.0);
+    m_registry->AddSystem<MovementSystem>();
+    m_registry->AddSystem<RenderSystem>();
+
+    Entity tank{m_registry->CreateEntity()};
+    tank.AddComponent<TransformComponent>(glm::vec2{10.0, 30.0}, glm::vec2{1.0, 1.0}, 0.0);
+    tank.AddComponent<RigidBodyComponent>(glm::vec2{40.0, 0.0});
+    tank.AddComponent<SpriteComponent>(10, 10);
+
+    Entity truck{m_registry->CreateEntity()};
+    truck.AddComponent<TransformComponent>(glm::vec2{50.0, 100.0}, glm::vec2{1.0, 1.0}, 0.0);
+    truck.AddComponent<RigidBodyComponent>(glm::vec2{0.0, 50.0});
+    truck.AddComponent<SpriteComponent>(10, 50);
 }
 
 void Game::Update()
@@ -88,8 +100,9 @@ void Game::Update()
 
     m_milisecsPreviousFrame = SDL_GetTicks();
 
-    playerPosition.x += playerVelocity.x * deltaTime;
-    playerPosition.y += playerVelocity.y * deltaTime;
+    m_registry->GetSystem<MovementSystem>().Update(deltaTime);
+
+    m_registry->Update();
 }
 
 void Game::Render()
@@ -97,15 +110,7 @@ void Game::Render()
     SDL_SetRenderDrawColor(m_renderer, 21, 21, 21, 255);
     SDL_RenderClear(m_renderer);
 
-    // Draw a PNG texture
-    SDL_Surface* surface{IMG_Load("./assets/images/tank-tiger-right.png")};
-    SDL_Texture* texture{SDL_CreateTextureFromSurface(m_renderer, surface)};
-    SDL_FreeSurface(surface);
-
-    SDL_Rect dstRect{static_cast<int>(playerPosition.x), static_cast<int>(playerPosition.y), 32, 32};
-    // Copy entire source texture into dstRect
-    SDL_RenderCopy(m_renderer, texture, nullptr, &dstRect);
-    SDL_DestroyTexture(texture);
+    m_registry->GetSystem<RenderSystem>().Update(m_renderer);
 
     SDL_RenderPresent(m_renderer);
 }
@@ -120,6 +125,7 @@ void Game::Run()
         Render();
     }
 }
+
 void Game::Destroy()
 {
     SDL_DestroyRenderer(m_renderer);
