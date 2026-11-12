@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../AssetStore/AssetStore.h"
 #include "../ECS/ECS.h"
 #include <SDL.h>
 #include <memory>
@@ -16,6 +17,7 @@ class Game
     SDL_Renderer* m_renderer{nullptr};
 
     std::unique_ptr<Registry> m_registry{};
+    std::unique_ptr<AssetStore> m_assetStore{};
 
   public:
     Game();
