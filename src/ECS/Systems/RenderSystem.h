@@ -37,8 +37,13 @@ class RenderSystem : public System
                 static_cast<int>(sprite.width * transform.scale.x),
                 static_cast<int>(sprite.height * transform.scale.y),
             };
-            SDL_RenderCopyEx(renderer, assetStore->GetTexture(sprite.assetId), &srcRect, &dstRect, transform.rotation,
-                             nullptr, SDL_FLIP_NONE);
+            SDL_RenderCopyEx(renderer,
+                             assetStore->GetTexture(sprite.assetId),
+                             &srcRect,
+                             &dstRect,
+                             transform.rotation,
+                             nullptr,
+                             SDL_FLIP_NONE);
         }
     }
 };

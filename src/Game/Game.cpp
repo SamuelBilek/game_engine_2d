@@ -37,8 +37,8 @@ void Game::Initialize()
     SDL_GetCurrentDisplayMode(0, &displayMode);
     windowWidth = std::min(displayMode.w, 1280);
     windowHeight = std::min(displayMode.h, 720);
-    m_window = SDL_CreateWindow(nullptr, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight,
-                                SDL_WINDOW_BORDERLESS);
+    m_window = SDL_CreateWindow(
+        nullptr, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_BORDERLESS);
 
     if (!m_window)
     {
@@ -107,13 +107,14 @@ void Game::LoadLevel(int level)
             Entity tile{m_registry->CreateEntity()};
             tile.AddComponent<TransformComponent>(
                 glm::vec2{coX * texSizeBase * tileScale, coY * texSizeBase * tileScale},
-                glm::vec2{tileScale, tileScale}, 0.0);
+                glm::vec2{tileScale, tileScale},
+                0.0);
 
             // convert chars to numbers
             int xCoord{tileCoord[1] - '0'};
             int yCoord{tileCoord[0] - '0'};
-            tile.AddComponent<SpriteComponent>(mapId, texSizeBase, texSizeBase, xCoord * texSizeBase,
-                                               yCoord * texSizeBase);
+            tile.AddComponent<SpriteComponent>(
+                mapId, texSizeBase, texSizeBase, xCoord * texSizeBase, yCoord * texSizeBase);
             ++coX;
         }
         ++coY;
