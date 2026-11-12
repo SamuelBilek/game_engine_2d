@@ -24,7 +24,6 @@ class RenderSystem : public System
         {
             if (!(entity.HasComponent<TransformComponent>() && entity.HasComponent<SpriteComponent>()))
             {
-                Logger::Err("Entity id = " + std::to_string(entity.GetId()) + " has invalid components");
                 continue;
             }
 

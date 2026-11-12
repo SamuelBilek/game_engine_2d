@@ -9,7 +9,12 @@
 #include "../Logger/Logger.h"
 #include <SDL.h>
 #include <SDL_image.h>
+#include <algorithm>
+#include <fstream>
+#include <iostream>
 #include <memory>
+#include <sstream>
+#include <string>
 
 Game::Game()
     : m_isRunning{false}, m_registry{std::make_unique<Registry>()}, m_assetStore{std::make_unique<AssetStore>()}
@@ -30,8 +35,8 @@ void Game::Initialize()
 
     SDL_DisplayMode displayMode{};
     SDL_GetCurrentDisplayMode(0, &displayMode);
-    windowWidth = displayMode.w;
-    windowHeight = displayMode.h;
+    windowWidth = std::min(displayMode.w, 1280);
+    windowHeight = std::min(displayMode.h, 720);
     m_window = SDL_CreateWindow(nullptr, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight,
                                 SDL_WINDOW_BORDERLESS);
 
@@ -73,8 +78,9 @@ void Game::ProcessInput()
     }
 }
 
-void Game::Setup()
+void Game::LoadLevel(int level)
 {
+    constexpr int texSizeBase{32};
     m_registry->AddSystem<MovementSystem>();
     m_registry->AddSystem<RenderSystem>();
 
@@ -83,15 +89,51 @@ void Game::Setup()
     m_assetStore->AddTexture(m_renderer, tankId, "./assets/images/tank-panther-right.png");
     m_assetStore->AddTexture(m_renderer, truckId, "./assets/images/truck-ford-right.png");
 
+    const std::string mapId{"map-tiles"};
+    constexpr double tileScale{2.0};
+    m_assetStore->AddTexture(m_renderer, mapId, "./assets/tilemaps/jungle.png");
+
+    std::ifstream mapFile{"./assets/tilemaps/jungle.map"};
+    std::string line{};
+    int coY{0};
+    while (std::getline(mapFile, line))
+    {
+        int coX{0};
+        std::stringstream ss{line};
+        std::string tileCoord{};
+
+        while (std::getline(ss, tileCoord, ','))
+        {
+            Entity tile{m_registry->CreateEntity()};
+            tile.AddComponent<TransformComponent>(
+                glm::vec2{coX * texSizeBase * tileScale, coY * texSizeBase * tileScale},
+                glm::vec2{tileScale, tileScale}, 0.0);
+
+            // convert chars to numbers
+            int xCoord{tileCoord[1] - '0'};
+            int yCoord{tileCoord[0] - '0'};
+            tile.AddComponent<SpriteComponent>(mapId, texSizeBase, texSizeBase, xCoord * texSizeBase,
+                                               yCoord * texSizeBase);
+            ++coX;
+        }
+        ++coY;
+    }
+    mapFile.close();
+
     Entity tank{m_registry->CreateEntity()};
     tank.AddComponent<TransformComponent>(glm::vec2{10.0, 30.0}, glm::vec2{1.0, 1.0}, 0.0);
     tank.AddComponent<RigidBodyComponent>(glm::vec2{40.0, 0.0});
-    tank.AddComponent<SpriteComponent>(tankId, 32, 32);
+    tank.AddComponent<SpriteComponent>(tankId, texSizeBase, texSizeBase);
 
     Entity truck{m_registry->CreateEntity()};
     truck.AddComponent<TransformComponent>(glm::vec2{50.0, 100.0}, glm::vec2{1.0, 1.0}, 0.0);
     truck.AddComponent<RigidBodyComponent>(glm::vec2{0.0, 50.0});
-    truck.AddComponent<SpriteComponent>(truckId, 32, 32);
+    truck.AddComponent<SpriteComponent>(truckId, texSizeBase, texSizeBase);
+}
+
+void Game::Setup()
+{
+    LoadLevel(1);
 }
 
 void Game::Update()

@@ -21,7 +21,6 @@ class MovementSystem : public System
         {
             if (!(entity.HasComponent<TransformComponent>() && entity.HasComponent<RigidBodyComponent>()))
             {
-                Logger::Err("Entity id = " + std::to_string(entity.GetId()) + " has invalid components");
                 continue;
             }
 
