@@ -114,7 +114,7 @@ void Game::LoadLevel(int level)
             int xCoord{tileCoord[1] - '0'};
             int yCoord{tileCoord[0] - '0'};
             tile.AddComponent<SpriteComponent>(
-                mapId, texSizeBase, texSizeBase, xCoord * texSizeBase, yCoord * texSizeBase);
+                mapId, texSizeBase, texSizeBase, 0, xCoord * texSizeBase, yCoord * texSizeBase);
             ++coX;
         }
         ++coY;
@@ -122,14 +122,14 @@ void Game::LoadLevel(int level)
     mapFile.close();
 
     Entity tank{m_registry->CreateEntity()};
-    tank.AddComponent<TransformComponent>(glm::vec2{10.0, 30.0}, glm::vec2{1.0, 1.0}, 0.0);
-    tank.AddComponent<RigidBodyComponent>(glm::vec2{40.0, 0.0});
-    tank.AddComponent<SpriteComponent>(tankId, texSizeBase, texSizeBase);
+    tank.AddComponent<TransformComponent>(glm::vec2{10.0, 10.0}, glm::vec2{1.0, 1.0}, 0.0);
+    tank.AddComponent<RigidBodyComponent>(glm::vec2{30.0, 0.0});
+    tank.AddComponent<SpriteComponent>(tankId, texSizeBase, texSizeBase, 2);
 
     Entity truck{m_registry->CreateEntity()};
-    truck.AddComponent<TransformComponent>(glm::vec2{50.0, 100.0}, glm::vec2{1.0, 1.0}, 0.0);
-    truck.AddComponent<RigidBodyComponent>(glm::vec2{0.0, 50.0});
-    truck.AddComponent<SpriteComponent>(truckId, texSizeBase, texSizeBase);
+    truck.AddComponent<TransformComponent>(glm::vec2{10.0, 10.0}, glm::vec2{1.0, 1.0}, 0.0);
+    truck.AddComponent<RigidBodyComponent>(glm::vec2{20.0, 0.0});
+    truck.AddComponent<SpriteComponent>(truckId, texSizeBase, texSizeBase, 1);
 }
 
 void Game::Setup()

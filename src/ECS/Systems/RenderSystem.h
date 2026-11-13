@@ -6,8 +6,10 @@
 #include "../Components/TransformComponent.h"
 #include "../ECS.h"
 #include "SDL.h"
+#include <algorithm>
 #include <memory>
-#include <string>
+#include <ranges>
+#include <vector>
 
 class RenderSystem : public System
 {
@@ -20,13 +22,14 @@ class RenderSystem : public System
 
     void Update(SDL_Renderer* renderer, std::unique_ptr<AssetStore>& assetStore)
     {
-        for (const auto& entity : GetSystemEntities())
-        {
-            if (!(entity.HasComponent<TransformComponent>() && entity.HasComponent<SpriteComponent>()))
-            {
-                continue;
-            }
+        auto filteredEntities{GetSystemEntities() | std::ranges::views::filter(SatisfiesRequirements)};
+        std::vector<Entity> zSortedEntities{filteredEntities.begin(), filteredEntities.end()};
+        std::ranges::sort(zSortedEntities, [](const Entity& entityA, const Entity& entityB) {
+            return entityA.GetComponent<SpriteComponent>().zIndex < entityB.GetComponent<SpriteComponent>().zIndex;
+        });
 
+        for (const auto& entity : zSortedEntities)
+        {
             const auto& transform{entity.GetComponent<TransformComponent>()};
             const auto& sprite{entity.GetComponent<SpriteComponent>()};
 
@@ -45,5 +48,11 @@ class RenderSystem : public System
                              nullptr,
                              SDL_FLIP_NONE);
         }
+    }
+
+  private:
+    static bool SatisfiesRequirements(const Entity& entity)
+    {
+        return entity.HasComponent<TransformComponent>() && entity.HasComponent<SpriteComponent>();
     }
 };
