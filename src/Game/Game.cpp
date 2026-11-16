@@ -1,9 +1,11 @@
 #include "Game.h"
 #include "../AssetStore/AssetStore.h"
+#include "../ECS/Components/AnimationComponent.h"
 #include "../ECS/Components/RigidBodyComponent.h"
 #include "../ECS/Components/SpriteComponent.h"
 #include "../ECS/Components/TransformComponent.h"
 #include "../ECS/ECS.h"
+#include "../ECS/Systems/AnimationSystem.h"
 #include "../ECS/Systems/MovementSystem.h"
 #include "../ECS/Systems/RenderSystem.h"
 #include "../Logger/Logger.h"
@@ -53,7 +55,7 @@ void Game::Initialize()
         Logger::Err("Error creating SDL Renderer.");
     }
 
-    SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
+    // SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
 
     m_isRunning = true;
 }
@@ -83,11 +85,7 @@ void Game::LoadLevel(int level)
     constexpr int texSizeBase{32};
     m_registry->AddSystem<MovementSystem>();
     m_registry->AddSystem<RenderSystem>();
-
-    const std::string tankId{"tank-image"};
-    const std::string truckId{"truck-image"};
-    m_assetStore->AddTexture(m_renderer, tankId, "./assets/images/tank-panther-right.png");
-    m_assetStore->AddTexture(m_renderer, truckId, "./assets/images/truck-ford-right.png");
+    m_registry->AddSystem<AnimationSystem>();
 
     const std::string mapId{"map-tiles"};
     constexpr double tileScale{2.0};
@@ -121,13 +119,36 @@ void Game::LoadLevel(int level)
     }
     mapFile.close();
 
+    const std::string chopperId{"chopper-image"};
+    m_assetStore->AddTexture(m_renderer, chopperId, "./assets/images/chopper.png");
+    Entity chopper{m_registry->CreateEntity()};
+    chopper.AddComponent<TransformComponent>(glm::vec2{10.0, 100.0}, glm::vec2{1.0, 1.0}, 0.0);
+    chopper.AddComponent<RigidBodyComponent>(glm::vec2{00.0, 0.0});
+    chopper.AddComponent<SpriteComponent>(chopperId, texSizeBase, texSizeBase, 1);
+    chopper.AddComponent<AnimationComponent>(2, 15, true);
+
+    constexpr int radarTexSize{64};
+    constexpr int radarPxOffset{10};
+    const std::string radarId{"radar-image"};
+    m_assetStore->AddTexture(m_renderer, radarId, "./assets/images/radar.png");
+    Entity radar{m_registry->CreateEntity()};
+    radar.AddComponent<TransformComponent>(
+        glm::vec2{windowWidth - (radarTexSize + radarPxOffset), radarPxOffset}, glm::vec2{1.0, 1.0}, 0.0);
+    radar.AddComponent<RigidBodyComponent>(glm::vec2{00.0, 0.0});
+    radar.AddComponent<SpriteComponent>(radarId, radarTexSize, radarTexSize, 2);
+    radar.AddComponent<AnimationComponent>(8, 5, true);
+
+    const std::string tankId{"tank-image"};
+    m_assetStore->AddTexture(m_renderer, tankId, "./assets/images/tank-panther-right.png");
     Entity tank{m_registry->CreateEntity()};
     tank.AddComponent<TransformComponent>(glm::vec2{10.0, 10.0}, glm::vec2{1.0, 1.0}, 0.0);
     tank.AddComponent<RigidBodyComponent>(glm::vec2{30.0, 0.0});
-    tank.AddComponent<SpriteComponent>(tankId, texSizeBase, texSizeBase, 2);
+    tank.AddComponent<SpriteComponent>(tankId, texSizeBase, texSizeBase, 1);
 
+    const std::string truckId{"truck-image"};
+    m_assetStore->AddTexture(m_renderer, truckId, "./assets/images/truck-ford-right.png");
     Entity truck{m_registry->CreateEntity()};
-    truck.AddComponent<TransformComponent>(glm::vec2{10.0, 10.0}, glm::vec2{1.0, 1.0}, 0.0);
+    truck.AddComponent<TransformComponent>(glm::vec2{10.0, 50.0}, glm::vec2{1.0, 1.0}, 0.0);
     truck.AddComponent<RigidBodyComponent>(glm::vec2{20.0, 0.0});
     truck.AddComponent<SpriteComponent>(truckId, texSizeBase, texSizeBase, 1);
 }
@@ -149,9 +170,10 @@ void Game::Update()
 
     m_milisecsPreviousFrame = SDL_GetTicks();
 
-    m_registry->GetSystem<MovementSystem>().Update(deltaTime);
-
     m_registry->Update();
+
+    m_registry->GetSystem<MovementSystem>().Update(deltaTime);
+    m_registry->GetSystem<AnimationSystem>().Update();
 }
 
 void Game::Render()
