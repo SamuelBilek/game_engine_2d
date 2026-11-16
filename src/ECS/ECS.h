@@ -2,6 +2,7 @@
 
 #include "../Logger/Logger.h"
 #include <bitset>
+#include <deque>
 #include <memory>
 #include <set>
 #include <typeindex>
@@ -55,6 +56,8 @@ class Entity
     }
     int GetId() const;
 
+    void Kill();
+
     // Shorthands for registry entity-component management functions
     template <typename TComponent, typename... TArgs>
     void AddComponent(TArgs&&... args);
@@ -107,7 +110,7 @@ class System
 
     void AddEntityToSystem(const Entity& entity);
     void RemoveEntityFromSystem(const Entity& Entity);
-    const std::vector<Entity>& GetSystemEntities() const;
+    std::vector<Entity>& GetSystemEntities();
     const Signature& GetComponentSignature() const;
 
     template <typename TComponent>
@@ -212,10 +215,15 @@ class Registry
     std::set<Entity> m_entitiesToBeAdded{};
     std::set<Entity> m_entitiesToBeKilled{};
 
+    // Ids of previously removed entities available for reuse
+    std::deque<int> m_freeIds{};
+
   public:
     Registry() = default;
 
     Entity CreateEntity();
+    void KillEntity(const Entity& entity);
+
     void Update();
 
     // Component functions
@@ -239,6 +247,7 @@ class Registry
     TSystem& GetSystem() const;
 
     void AddEntityToSystems(const Entity& entity);
+    void RemoveEntityFromSystems(const Entity& entity);
 };
 
 ////////////////////////////////////////

@@ -16,15 +16,15 @@ class CollisionSystem : public System
 
     void Update()
     {
-        const auto& entities{GetSystemEntities()};
+        auto& entities{GetSystemEntities()};
         for (auto i{entities.begin()}; i < entities.end() - 1; ++i)
         {
-            const Entity& entityA{*i};
+            Entity& entityA{*i};
             const auto& aTransform{entityA.GetComponent<TransformComponent>()};
             const auto& aCollider{entityA.GetComponent<BoxColliderComponent>()};
             for (auto j{i + 1}; j < entities.end(); ++j)
             {
-                const Entity& entityB{*j};
+                Entity& entityB{*j};
 
                 const auto& bTransform{entityB.GetComponent<TransformComponent>()};
                 const auto& bCollider{entityB.GetComponent<BoxColliderComponent>()};
@@ -41,7 +41,10 @@ class CollisionSystem : public System
                 {
                     Logger::Log("Entity " + std::to_string(entityA.GetId()) + " is colliding with entity " +
                                 std::to_string(entityB.GetId()));
-                    // TODO: React to collision
+
+                    // TODO: Emit an event instead
+                    entityA.Kill();
+                    entityB.Kill();
                 }
             }
         }
