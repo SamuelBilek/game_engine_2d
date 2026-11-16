@@ -30,7 +30,7 @@ void System::RemoveEntityFromSystem(const Entity& entity)
         std::remove_if(m_entitites.begin(), m_entitites.end(), [&entity](Entity& other) { return entity == other; }));
 }
 
-std::vector<Entity> System::GetSystemEntities() const
+const std::vector<Entity>& System::GetSystemEntities() const
 {
     return m_entitites;
 }

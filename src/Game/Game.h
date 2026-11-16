@@ -12,6 +12,7 @@ class Game
 {
   private:
     bool m_isRunning{false};
+    bool m_isDebug{false};
     int m_milisecsPreviousFrame{0};
     SDL_Window* m_window{nullptr};
     SDL_Renderer* m_renderer{nullptr};

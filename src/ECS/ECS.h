@@ -107,7 +107,7 @@ class System
 
     void AddEntityToSystem(const Entity& entity);
     void RemoveEntityFromSystem(const Entity& Entity);
-    std::vector<Entity> GetSystemEntities() const;
+    const std::vector<Entity>& GetSystemEntities() const;
     const Signature& GetComponentSignature() const;
 
     template <typename TComponent>
@@ -356,7 +356,7 @@ TComponent& Registry::GetComponent(const Entity& entity) const
 template <typename TSystem, typename... TArgs>
 void Registry::AddSystem(TArgs&&... args)
 {
-    std::shared_ptr<System> newSystem{std::make_shared<System>(std::forward<TArgs>(args)...)};
+    std::shared_ptr<TSystem> newSystem{std::make_shared<TSystem>(std::forward<TArgs>(args)...)};
     m_systems.insert(std::make_pair(std::type_index(typeid(TSystem)), newSystem));
 }
 

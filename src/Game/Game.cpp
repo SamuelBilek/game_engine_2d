@@ -1,12 +1,15 @@
 #include "Game.h"
 #include "../AssetStore/AssetStore.h"
 #include "../ECS/Components/AnimationComponent.h"
+#include "../ECS/Components/BoxColliderComponent.h"
 #include "../ECS/Components/RigidBodyComponent.h"
 #include "../ECS/Components/SpriteComponent.h"
 #include "../ECS/Components/TransformComponent.h"
 #include "../ECS/ECS.h"
 #include "../ECS/Systems/AnimationSystem.h"
+#include "../ECS/Systems/CollisionSystem.h"
 #include "../ECS/Systems/MovementSystem.h"
+#include "../ECS/Systems/RenderCollisionSystem.h"
 #include "../ECS/Systems/RenderSystem.h"
 #include "../Logger/Logger.h"
 #include <SDL.h>
@@ -74,8 +77,12 @@ void Game::ProcessInput()
             if (sdlEvent.key.keysym.sym == SDLK_ESCAPE) // ESC down
             {
                 m_isRunning = false;
-                return;
             }
+            if (sdlEvent.key.keysym.sym == SDLK_d)
+            {
+                m_isDebug = !m_isDebug;
+            }
+            break;
         }
     }
 }
@@ -86,6 +93,8 @@ void Game::LoadLevel(int level)
     m_registry->AddSystem<MovementSystem>();
     m_registry->AddSystem<RenderSystem>();
     m_registry->AddSystem<AnimationSystem>();
+    m_registry->AddSystem<CollisionSystem>();
+    m_registry->AddSystem<RenderCollisionSystem>();
 
     const std::string mapId{"map-tiles"};
     constexpr double tileScale{2.0};
@@ -141,16 +150,18 @@ void Game::LoadLevel(int level)
     const std::string tankId{"tank-image"};
     m_assetStore->AddTexture(m_renderer, tankId, "./assets/images/tank-panther-right.png");
     Entity tank{m_registry->CreateEntity()};
-    tank.AddComponent<TransformComponent>(glm::vec2{10.0, 10.0}, glm::vec2{1.0, 1.0}, 0.0);
-    tank.AddComponent<RigidBodyComponent>(glm::vec2{30.0, 0.0});
+    tank.AddComponent<TransformComponent>(glm::vec2{100.0, 10.0}, glm::vec2{1.0, 1.0}, 0.0);
+    tank.AddComponent<RigidBodyComponent>(glm::vec2{-30.0, 0.0});
     tank.AddComponent<SpriteComponent>(tankId, texSizeBase, texSizeBase, 1);
+    tank.AddComponent<BoxColliderComponent>(texSizeBase, texSizeBase);
 
     const std::string truckId{"truck-image"};
     m_assetStore->AddTexture(m_renderer, truckId, "./assets/images/truck-ford-right.png");
     Entity truck{m_registry->CreateEntity()};
-    truck.AddComponent<TransformComponent>(glm::vec2{10.0, 50.0}, glm::vec2{1.0, 1.0}, 0.0);
+    truck.AddComponent<TransformComponent>(glm::vec2{10.0, 10.0}, glm::vec2{1.0, 1.0}, 0.0);
     truck.AddComponent<RigidBodyComponent>(glm::vec2{20.0, 0.0});
     truck.AddComponent<SpriteComponent>(truckId, texSizeBase, texSizeBase, 1);
+    truck.AddComponent<BoxColliderComponent>(texSizeBase, texSizeBase);
 }
 
 void Game::Setup()
@@ -174,6 +185,7 @@ void Game::Update()
 
     m_registry->GetSystem<MovementSystem>().Update(deltaTime);
     m_registry->GetSystem<AnimationSystem>().Update();
+    m_registry->GetSystem<CollisionSystem>().Update();
 }
 
 void Game::Render()
@@ -182,6 +194,10 @@ void Game::Render()
     SDL_RenderClear(m_renderer);
 
     m_registry->GetSystem<RenderSystem>().Update(m_renderer, m_assetStore);
+    if (m_isDebug)
+    {
+        m_registry->GetSystem<RenderCollisionSystem>().Update(m_renderer);
+    }
 
     SDL_RenderPresent(m_renderer);
 }
