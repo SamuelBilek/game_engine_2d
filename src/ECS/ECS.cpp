@@ -32,7 +32,8 @@ void System::AddEntityToSystem(const Entity& entity)
 void System::RemoveEntityFromSystem(const Entity& entity)
 {
     m_entitites.erase(
-        std::remove_if(m_entitites.begin(), m_entitites.end(), [&entity](Entity& other) { return entity == other; }));
+        std::remove_if(m_entitites.begin(), m_entitites.end(), [&entity](Entity& other) { return entity == other; }),
+        m_entitites.end());
 }
 
 std::vector<Entity>& System::GetSystemEntities()

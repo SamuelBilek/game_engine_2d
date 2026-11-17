@@ -8,6 +8,7 @@
 #include "../ECS/ECS.h"
 #include "../ECS/Systems/AnimationSystem.h"
 #include "../ECS/Systems/CollisionSystem.h"
+#include "../ECS/Systems/DamageSystem.h"
 #include "../ECS/Systems/MovementSystem.h"
 #include "../ECS/Systems/RenderCollisionSystem.h"
 #include "../ECS/Systems/RenderSystem.h"
@@ -16,13 +17,13 @@
 #include <SDL_image.h>
 #include <algorithm>
 #include <fstream>
-#include <iostream>
 #include <memory>
 #include <sstream>
 #include <string>
 
 Game::Game()
-    : m_isRunning{false}, m_registry{std::make_unique<Registry>()}, m_assetStore{std::make_unique<AssetStore>()}
+    : m_isRunning{false}, m_registry{std::make_unique<Registry>()}, m_assetStore{std::make_unique<AssetStore>()},
+      m_eventBus{std::make_unique<EventBus>()}
 {
     Logger::Log("Game constructor called!");
 }
@@ -95,6 +96,7 @@ void Game::LoadLevel(int level)
     m_registry->AddSystem<AnimationSystem>();
     m_registry->AddSystem<CollisionSystem>();
     m_registry->AddSystem<RenderCollisionSystem>();
+    m_registry->AddSystem<DamageSystem>();
 
     const std::string mapId{"map-tiles"};
     constexpr double tileScale{2.0};
@@ -181,11 +183,15 @@ void Game::Update()
 
     m_milisecsPreviousFrame = SDL_GetTicks();
 
+    m_eventBus->Reset();
+
+    m_registry->GetSystem<DamageSystem>().SubscribeToEvents(m_eventBus);
+
     m_registry->Update();
 
     m_registry->GetSystem<MovementSystem>().Update(deltaTime);
     m_registry->GetSystem<AnimationSystem>().Update();
-    m_registry->GetSystem<CollisionSystem>().Update();
+    m_registry->GetSystem<CollisionSystem>().Update(m_eventBus);
 }
 
 void Game::Render()

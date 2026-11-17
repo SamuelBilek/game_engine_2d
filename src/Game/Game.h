@@ -2,6 +2,7 @@
 
 #include "../AssetStore/AssetStore.h"
 #include "../ECS/ECS.h"
+#include "../EventBus/EventBus.h"
 #include <SDL.h>
 #include <memory>
 
@@ -19,6 +20,7 @@ class Game
 
     std::unique_ptr<Registry> m_registry{};
     std::unique_ptr<AssetStore> m_assetStore{};
+    std::unique_ptr<EventBus> m_eventBus{};
 
   public:
     Game();

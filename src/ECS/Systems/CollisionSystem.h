@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../../EventBus/EventBus.h"
+#include "../../Events/CollisionEvent.h"
 #include "../../Logger/Logger.h"
 #include "../Components/BoxColliderComponent.h"
 #include "../Components/TransformComponent.h"
@@ -14,7 +16,7 @@ class CollisionSystem : public System
         RequireComponent<BoxColliderComponent>();
     }
 
-    void Update()
+    void Update(std::unique_ptr<EventBus>& eventBus)
     {
         auto& entities{GetSystemEntities()};
         for (auto i{entities.begin()}; i < entities.end() - 1; ++i)
@@ -41,10 +43,7 @@ class CollisionSystem : public System
                 {
                     Logger::Log("Entity " + std::to_string(entityA.GetId()) + " is colliding with entity " +
                                 std::to_string(entityB.GetId()));
-
-                    // TODO: Emit an event instead
-                    entityA.Kill();
-                    entityB.Kill();
+                    eventBus->EmitEvent<CollisionEvent>(entityA, entityB);
                 }
             }
         }
