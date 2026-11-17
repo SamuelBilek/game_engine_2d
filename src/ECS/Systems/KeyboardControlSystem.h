@@ -2,8 +2,11 @@
 
 #include "../../EventBus/EventBus.h"
 #include "../../Events/KeyPressedEvent.h"
-#include "../Components/TransformComponent.h"
+#include "../Components/KeyboardControlledComponent.h"
+#include "../Components/RigidBodyComponent.h"
+#include "../Components/SpriteComponent.h"
 #include "../ECS.h"
+#include <SDL.h>
 #include <string>
 
 class KeyboardControlSystem : public System
@@ -11,7 +14,9 @@ class KeyboardControlSystem : public System
   public:
     KeyboardControlSystem()
     {
-        RequireComponent<TransformComponent>();
+        RequireComponent<KeyboardControlledComponent>();
+        RequireComponent<SpriteComponent>();
+        RequireComponent<RigidBodyComponent>();
     }
 
     void SubscribeToEvents(std::unique_ptr<EventBus>& eventBus)
@@ -21,8 +26,43 @@ class KeyboardControlSystem : public System
 
     void OnKeyPressed(KeyPressedEvent& event)
     {
-        Logger::Log("Key pressed [" + std::to_string(event.symbol) + "] " +
-                    std::string{static_cast<char>(event.symbol)});
+        enum AnimationRow
+        {
+            UP,
+            RIGHT,
+            DOWN,
+            LEFT
+        };
+
+        for (const auto& entity : GetSystemEntities())
+        {
+            const auto& keyboardControl{entity.GetComponent<KeyboardControlledComponent>()};
+            auto& sprite{entity.GetComponent<SpriteComponent>()};
+            auto& rigidBody{entity.GetComponent<RigidBodyComponent>()};
+
+            switch (event.symbol)
+            {
+            case SDLK_UP:
+                rigidBody.velocity = keyboardControl.upVelocity;
+                sprite.srcRect.y = sprite.height * UP;
+                break;
+            case SDLK_RIGHT:
+                rigidBody.velocity = keyboardControl.rightVelocity;
+                sprite.srcRect.y = sprite.height * RIGHT;
+                break;
+            case SDLK_DOWN:
+                rigidBody.velocity = keyboardControl.downVelocity;
+                sprite.srcRect.y = sprite.height * DOWN;
+                break;
+            case SDLK_LEFT:
+                rigidBody.velocity = keyboardControl.leftVelocity;
+                sprite.srcRect.y = sprite.height * LEFT;
+                break;
+
+            default:
+                break;
+            }
+        }
     }
 
     void Update()

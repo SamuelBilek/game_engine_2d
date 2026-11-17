@@ -2,6 +2,7 @@
 #include "../AssetStore/AssetStore.h"
 #include "../ECS/Components/AnimationComponent.h"
 #include "../ECS/Components/BoxColliderComponent.h"
+#include "../ECS/Components/KeyboardControlledComponent.h"
 #include "../ECS/Components/RigidBodyComponent.h"
 #include "../ECS/Components/SpriteComponent.h"
 #include "../ECS/Components/TransformComponent.h"
@@ -135,12 +136,17 @@ void Game::LoadLevel(int level)
     mapFile.close();
 
     const std::string chopperId{"chopper-image"};
-    m_assetStore->AddTexture(m_renderer, chopperId, "./assets/images/chopper.png");
+    constexpr int chopperSpeed{50};
+    m_assetStore->AddTexture(m_renderer, chopperId, "./assets/images/chopper-spritesheet.png");
     Entity chopper{m_registry->CreateEntity()};
     chopper.AddComponent<TransformComponent>(glm::vec2{10.0, 100.0}, glm::vec2{1.0, 1.0}, 0.0);
     chopper.AddComponent<RigidBodyComponent>(glm::vec2{00.0, 0.0});
     chopper.AddComponent<SpriteComponent>(chopperId, texSizeBase, texSizeBase, 1);
     chopper.AddComponent<AnimationComponent>(2, 15, true);
+    chopper.AddComponent<KeyboardControlledComponent>(glm::vec2(0, -chopperSpeed),
+                                                      glm::vec2(chopperSpeed, 0),
+                                                      glm::vec2(0, chopperSpeed),
+                                                      glm::vec2(-chopperSpeed, 0));
 
     constexpr int radarTexSize{64};
     constexpr int radarPxOffset{10};
