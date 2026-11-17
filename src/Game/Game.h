@@ -17,6 +17,7 @@ class Game
     int m_milisecsPreviousFrame{0};
     SDL_Window* m_window{nullptr};
     SDL_Renderer* m_renderer{nullptr};
+    SDL_Rect m_camera{};
 
     std::unique_ptr<Registry> m_registry{};
     std::unique_ptr<AssetStore> m_assetStore{};
@@ -34,6 +35,8 @@ class Game
     void Render();
     void Destroy();
 
-    int windowWidth{};
-    int windowHeight{};
+    inline static int s_windowWidth{};
+    inline static int s_windowHeight{};
+    inline static int s_mapWidth{};
+    inline static int s_mapHeigth{};
 };

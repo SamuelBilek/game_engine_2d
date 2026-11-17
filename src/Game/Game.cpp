@@ -2,12 +2,14 @@
 #include "../AssetStore/AssetStore.h"
 #include "../ECS/Components/AnimationComponent.h"
 #include "../ECS/Components/BoxColliderComponent.h"
+#include "../ECS/Components/CameraFollowComponent.h"
 #include "../ECS/Components/KeyboardControlledComponent.h"
 #include "../ECS/Components/RigidBodyComponent.h"
 #include "../ECS/Components/SpriteComponent.h"
 #include "../ECS/Components/TransformComponent.h"
 #include "../ECS/ECS.h"
 #include "../ECS/Systems/AnimationSystem.h"
+#include "../ECS/Systems/CameraMovementSystem.h"
 #include "../ECS/Systems/CollisionSystem.h"
 #include "../ECS/Systems/DamageSystem.h"
 #include "../ECS/Systems/KeyboardControlSystem.h"
@@ -44,10 +46,10 @@ void Game::Initialize()
 
     SDL_DisplayMode displayMode{};
     SDL_GetCurrentDisplayMode(0, &displayMode);
-    windowWidth = std::min(displayMode.w, 1280);
-    windowHeight = std::min(displayMode.h, 720);
+    s_windowWidth = std::min(displayMode.w, 1280);
+    s_windowHeight = std::min(displayMode.h, 720);
     m_window = SDL_CreateWindow(
-        nullptr, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_BORDERLESS);
+        nullptr, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, s_windowWidth, s_windowHeight, SDL_WINDOW_BORDERLESS);
 
     if (!m_window)
     {
@@ -65,6 +67,12 @@ void Game::Initialize()
     // SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
 
     m_isRunning = true;
+
+    // Initialize the camera
+    m_camera.x = 0;
+    m_camera.y = 0;
+    m_camera.w = s_windowWidth;
+    m_camera.h = s_windowHeight;
 }
 
 void Game::ProcessInput()
@@ -102,6 +110,7 @@ void Game::LoadLevel(int level)
     m_registry->AddSystem<RenderCollisionSystem>();
     m_registry->AddSystem<DamageSystem>();
     m_registry->AddSystem<KeyboardControlSystem>();
+    m_registry->AddSystem<CameraMovementSystem>();
 
     const std::string mapId{"map-tiles"};
     constexpr double tileScale{2.0};
@@ -110,9 +119,10 @@ void Game::LoadLevel(int level)
     std::ifstream mapFile{"./assets/tilemaps/jungle.map"};
     std::string line{};
     int coY{0};
+    int coX{0};
     while (std::getline(mapFile, line))
     {
-        int coX{0};
+        coX = 0;
         std::stringstream ss{line};
         std::string tileCoord{};
 
@@ -128,15 +138,18 @@ void Game::LoadLevel(int level)
             int xCoord{tileCoord[1] - '0'};
             int yCoord{tileCoord[0] - '0'};
             tile.AddComponent<SpriteComponent>(
-                mapId, texSizeBase, texSizeBase, 0, xCoord * texSizeBase, yCoord * texSizeBase);
+                mapId, texSizeBase, texSizeBase, 0, false, xCoord * texSizeBase, yCoord * texSizeBase);
             ++coX;
         }
         ++coY;
     }
     mapFile.close();
 
+    s_mapWidth = coX * texSizeBase * tileScale;
+    s_mapHeigth = coY * texSizeBase * tileScale;
+
     const std::string chopperId{"chopper-image"};
-    constexpr int chopperSpeed{50};
+    constexpr int chopperSpeed{80};
     m_assetStore->AddTexture(m_renderer, chopperId, "./assets/images/chopper-spritesheet.png");
     Entity chopper{m_registry->CreateEntity()};
     chopper.AddComponent<TransformComponent>(glm::vec2{10.0, 100.0}, glm::vec2{1.0, 1.0}, 0.0);
@@ -147,6 +160,7 @@ void Game::LoadLevel(int level)
                                                       glm::vec2(chopperSpeed, 0),
                                                       glm::vec2(0, chopperSpeed),
                                                       glm::vec2(-chopperSpeed, 0));
+    chopper.AddComponent<CameraFollowComponent>();
 
     constexpr int radarTexSize{64};
     constexpr int radarPxOffset{10};
@@ -154,15 +168,15 @@ void Game::LoadLevel(int level)
     m_assetStore->AddTexture(m_renderer, radarId, "./assets/images/radar.png");
     Entity radar{m_registry->CreateEntity()};
     radar.AddComponent<TransformComponent>(
-        glm::vec2{windowWidth - (radarTexSize + radarPxOffset), radarPxOffset}, glm::vec2{1.0, 1.0}, 0.0);
+        glm::vec2{s_windowWidth - (radarTexSize + radarPxOffset), radarPxOffset}, glm::vec2{1.0, 1.0}, 0.0);
     radar.AddComponent<RigidBodyComponent>(glm::vec2{00.0, 0.0});
-    radar.AddComponent<SpriteComponent>(radarId, radarTexSize, radarTexSize, 2);
+    radar.AddComponent<SpriteComponent>(radarId, radarTexSize, radarTexSize, 2, true);
     radar.AddComponent<AnimationComponent>(8, 5, true);
 
     const std::string tankId{"tank-image"};
     m_assetStore->AddTexture(m_renderer, tankId, "./assets/images/tank-panther-right.png");
     Entity tank{m_registry->CreateEntity()};
-    tank.AddComponent<TransformComponent>(glm::vec2{100.0, 10.0}, glm::vec2{1.0, 1.0}, 0.0);
+    tank.AddComponent<TransformComponent>(glm::vec2{1000.0, 10.0}, glm::vec2{1.0, 1.0}, 0.0);
     tank.AddComponent<RigidBodyComponent>(glm::vec2{-30.0, 0.0});
     tank.AddComponent<SpriteComponent>(tankId, texSizeBase, texSizeBase, 1);
     tank.AddComponent<BoxColliderComponent>(texSizeBase, texSizeBase);
@@ -203,6 +217,7 @@ void Game::Update()
     m_registry->GetSystem<MovementSystem>().Update(deltaTime);
     m_registry->GetSystem<AnimationSystem>().Update();
     m_registry->GetSystem<CollisionSystem>().Update(m_eventBus);
+    m_registry->GetSystem<CameraMovementSystem>().Update(m_camera);
 }
 
 void Game::Render()
@@ -210,10 +225,10 @@ void Game::Render()
     SDL_SetRenderDrawColor(m_renderer, 21, 21, 21, 255);
     SDL_RenderClear(m_renderer);
 
-    m_registry->GetSystem<RenderSystem>().Update(m_renderer, m_assetStore);
+    m_registry->GetSystem<RenderSystem>().Update(m_renderer, m_assetStore, m_camera);
     if (m_isDebug)
     {
-        m_registry->GetSystem<RenderCollisionSystem>().Update(m_renderer);
+        m_registry->GetSystem<RenderCollisionSystem>().Update(m_renderer, m_camera);
     }
 
     SDL_RenderPresent(m_renderer);

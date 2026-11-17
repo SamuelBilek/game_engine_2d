@@ -11,12 +11,15 @@ struct SpriteComponent : Component<SpriteComponent>
     int width{};
     int height{};
     int zIndex{};
+    bool isFixed{};
     SDL_Rect srcRect;
 
     SpriteComponent() = default;
 
-    SpriteComponent(std::string_view assetId, int width, int height, int zIndex = 0, int srcRectX = 0, int srcRectY = 0)
-        : assetId{assetId}, width{width}, height{height}, zIndex{zIndex}, srcRect{srcRectX, srcRectY, width, height}
+    SpriteComponent(std::string_view assetId, int width, int height, int zIndex = 0, bool isFixed = false,
+                    int srcRectX = 0, int srcRectY = 0)
+        : assetId{assetId}, width{width}, height{height}, zIndex{zIndex}, isFixed{isFixed},
+          srcRect{srcRectX, srcRectY, width, height}
     {
     }
 };
