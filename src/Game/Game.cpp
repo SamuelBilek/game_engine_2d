@@ -9,9 +9,11 @@
 #include "../ECS/Systems/AnimationSystem.h"
 #include "../ECS/Systems/CollisionSystem.h"
 #include "../ECS/Systems/DamageSystem.h"
+#include "../ECS/Systems/KeyboardControlSystem.h"
 #include "../ECS/Systems/MovementSystem.h"
 #include "../ECS/Systems/RenderCollisionSystem.h"
 #include "../ECS/Systems/RenderSystem.h"
+#include "../Events/KeyPressedEvent.h"
 #include "../Logger/Logger.h"
 #include <SDL.h>
 #include <SDL_image.h>
@@ -83,6 +85,7 @@ void Game::ProcessInput()
             {
                 m_isDebug = !m_isDebug;
             }
+            m_eventBus->EmitEvent<KeyPressedEvent>(sdlEvent.key.keysym.sym);
             break;
         }
     }
@@ -97,6 +100,7 @@ void Game::LoadLevel(int level)
     m_registry->AddSystem<CollisionSystem>();
     m_registry->AddSystem<RenderCollisionSystem>();
     m_registry->AddSystem<DamageSystem>();
+    m_registry->AddSystem<KeyboardControlSystem>();
 
     const std::string mapId{"map-tiles"};
     constexpr double tileScale{2.0};
@@ -186,6 +190,7 @@ void Game::Update()
     m_eventBus->Reset();
 
     m_registry->GetSystem<DamageSystem>().SubscribeToEvents(m_eventBus);
+    m_registry->GetSystem<KeyboardControlSystem>().SubscribeToEvents(m_eventBus);
 
     m_registry->Update();
 
