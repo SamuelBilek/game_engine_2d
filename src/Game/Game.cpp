@@ -3,7 +3,9 @@
 #include "../ECS/Components/AnimationComponent.h"
 #include "../ECS/Components/BoxColliderComponent.h"
 #include "../ECS/Components/CameraFollowComponent.h"
+#include "../ECS/Components/HealthComponent.h"
 #include "../ECS/Components/KeyboardControlledComponent.h"
+#include "../ECS/Components/ProjectileEmitterComponent.h"
 #include "../ECS/Components/RigidBodyComponent.h"
 #include "../ECS/Components/SpriteComponent.h"
 #include "../ECS/Components/TransformComponent.h"
@@ -14,6 +16,8 @@
 #include "../ECS/Systems/DamageSystem.h"
 #include "../ECS/Systems/KeyboardControlSystem.h"
 #include "../ECS/Systems/MovementSystem.h"
+#include "../ECS/Systems/ProjectileEmitSystem.h"
+#include "../ECS/Systems/ProjectileLifecycleSystem.h"
 #include "../ECS/Systems/RenderCollisionSystem.h"
 #include "../ECS/Systems/RenderSystem.h"
 #include "../Events/KeyPressedEvent.h"
@@ -25,6 +29,8 @@
 #include <memory>
 #include <sstream>
 #include <string>
+
+static const std::string s_projectileId{"bullet-image"};
 
 Game::Game()
     : m_isRunning{false}, m_registry{std::make_unique<Registry>()}, m_assetStore{std::make_unique<AssetStore>()},
@@ -111,6 +117,8 @@ void Game::LoadLevel(int level)
     m_registry->AddSystem<DamageSystem>();
     m_registry->AddSystem<KeyboardControlSystem>();
     m_registry->AddSystem<CameraMovementSystem>();
+    m_registry->AddSystem<ProjectileEmitSystem>();
+    m_registry->AddSystem<ProjectileLifecycleSystem>();
 
     const std::string mapId{"map-tiles"};
     constexpr double tileScale{2.0};
@@ -161,6 +169,7 @@ void Game::LoadLevel(int level)
                                                       glm::vec2(0, chopperSpeed),
                                                       glm::vec2(-chopperSpeed, 0));
     chopper.AddComponent<CameraFollowComponent>();
+    chopper.AddComponent<HealthComponent>(100);
 
     constexpr int radarTexSize{64};
     constexpr int radarPxOffset{10};
@@ -180,6 +189,8 @@ void Game::LoadLevel(int level)
     tank.AddComponent<RigidBodyComponent>(glm::vec2{-30.0, 0.0});
     tank.AddComponent<SpriteComponent>(tankId, texSizeBase, texSizeBase, 1);
     tank.AddComponent<BoxColliderComponent>(texSizeBase, texSizeBase);
+    tank.AddComponent<ProjectileEmitterComponent>(glm::vec2(100.0, 0.0), 5000, 3000, 0, false);
+    tank.AddComponent<HealthComponent>(100);
 
     const std::string truckId{"truck-image"};
     m_assetStore->AddTexture(m_renderer, truckId, "./assets/images/truck-ford-right.png");
@@ -188,6 +199,10 @@ void Game::LoadLevel(int level)
     truck.AddComponent<RigidBodyComponent>(glm::vec2{20.0, 0.0});
     truck.AddComponent<SpriteComponent>(truckId, texSizeBase, texSizeBase, 1);
     truck.AddComponent<BoxColliderComponent>(texSizeBase, texSizeBase);
+    truck.AddComponent<ProjectileEmitterComponent>(glm::vec2(0.0, 100.0), 2000, 5000, 0, false);
+    truck.AddComponent<HealthComponent>(100);
+
+    m_assetStore->AddTexture(m_renderer, s_projectileId, "./assets/images/bullet.png");
 }
 
 void Game::Setup()
@@ -217,6 +232,8 @@ void Game::Update()
     m_registry->GetSystem<MovementSystem>().Update(deltaTime);
     m_registry->GetSystem<AnimationSystem>().Update();
     m_registry->GetSystem<CollisionSystem>().Update(m_eventBus);
+    m_registry->GetSystem<ProjectileEmitSystem>().Update(m_registry, s_projectileId, glm::vec2(4, 4));
+    m_registry->GetSystem<ProjectileLifecycleSystem>().Update();
     m_registry->GetSystem<CameraMovementSystem>().Update(m_camera);
 }
 
