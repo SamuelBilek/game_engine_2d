@@ -21,7 +21,7 @@ class ProjectileEmitSystem : public System
         RequireComponent<ProjectileEmitterComponent>();
     }
 
-    void Update(std::unique_ptr<Registry>& registry, std::string_view projectileId, glm::vec2 projectileSize)
+    void Update(std::string_view projectileId, glm::vec2 projectileSize)
     {
         for (auto& entity : GetSystemEntities())
         {
@@ -39,7 +39,7 @@ class ProjectileEmitSystem : public System
                     projectilePosition.y += transform.scale.y * sprite.height / 2;
                 }
 
-                Entity projectile{registry->CreateEntity()};
+                Entity projectile{Registry::GetInstance().CreateEntity()};
                 projectile.AddComponent<TransformComponent>(projectilePosition, glm::vec2(1.0, 1.0), 0.0);
                 projectile.AddComponent<RigidBodyComponent>(projectileEmitter.projectileVelocity);
                 projectile.AddComponent<SpriteComponent>(

@@ -48,10 +48,9 @@ class Entity
 {
   private:
     int m_id{};
-    class Registry* m_registry{nullptr};
 
   public:
-    Entity(int id, Registry* registry) : m_id{id}, m_registry{registry}
+    Entity(int id) : m_id{id}
     {
     }
     int GetId() const;
@@ -218,8 +217,12 @@ class Registry
     // Ids of previously removed entities available for reuse
     std::deque<int> m_freeIds{};
 
-  public:
+    // Private constructor for singleton creation
     Registry() = default;
+
+  public:
+    // Getter for singleton instance
+    static Registry& GetInstance();
 
     Entity CreateEntity();
     void KillEntity(const Entity& entity);
@@ -258,25 +261,25 @@ class Registry
 template <typename TComponent, typename... TArgs>
 void Entity::AddComponent(TArgs&&... args)
 {
-    m_registry->AddComponent<TComponent>(*this, std::forward<TArgs>(args)...);
+    Registry::GetInstance().AddComponent<TComponent>(*this, std::forward<TArgs>(args)...);
 }
 
 template <typename TComponent>
 void Entity::RemoveComponent()
 {
-    m_registry->RemoveComponent<TComponent>(*this);
+    Registry::GetInstance().RemoveComponent<TComponent>(*this);
 }
 
 template <typename TComponent>
 bool Entity::HasComponent() const
 {
-    return m_registry->HasComponent<TComponent>(*this);
+    return Registry::GetInstance().HasComponent<TComponent>(*this);
 }
 
 template <typename TComponent>
 TComponent& Entity::GetComponent() const
 {
-    return m_registry->GetComponent<TComponent>(*this);
+    return Registry::GetInstance().GetComponent<TComponent>(*this);
 }
 
 ////////////////////////////////////////

@@ -33,8 +33,7 @@
 static const std::string s_projectileId{"bullet-image"};
 
 Game::Game()
-    : m_isRunning{false}, m_registry{std::make_unique<Registry>()}, m_assetStore{std::make_unique<AssetStore>()},
-      m_eventBus{std::make_unique<EventBus>()}
+    : m_isRunning{false}, m_assetStore{std::make_unique<AssetStore>()}, m_eventBus{std::make_unique<EventBus>()}
 {
     Logger::Log("Game constructor called!");
 }
@@ -109,16 +108,17 @@ void Game::ProcessInput()
 void Game::LoadLevel(int level)
 {
     constexpr int texSizeBase{32};
-    m_registry->AddSystem<MovementSystem>();
-    m_registry->AddSystem<RenderSystem>();
-    m_registry->AddSystem<AnimationSystem>();
-    m_registry->AddSystem<CollisionSystem>();
-    m_registry->AddSystem<RenderCollisionSystem>();
-    m_registry->AddSystem<DamageSystem>();
-    m_registry->AddSystem<KeyboardControlSystem>();
-    m_registry->AddSystem<CameraMovementSystem>();
-    m_registry->AddSystem<ProjectileEmitSystem>();
-    m_registry->AddSystem<ProjectileLifecycleSystem>();
+    auto& registryInstance{Registry::GetInstance()};
+    registryInstance.AddSystem<MovementSystem>();
+    registryInstance.AddSystem<RenderSystem>();
+    registryInstance.AddSystem<AnimationSystem>();
+    registryInstance.AddSystem<CollisionSystem>();
+    registryInstance.AddSystem<RenderCollisionSystem>();
+    registryInstance.AddSystem<DamageSystem>();
+    registryInstance.AddSystem<KeyboardControlSystem>();
+    registryInstance.AddSystem<CameraMovementSystem>();
+    registryInstance.AddSystem<ProjectileEmitSystem>();
+    registryInstance.AddSystem<ProjectileLifecycleSystem>();
 
     const std::string mapId{"map-tiles"};
     constexpr double tileScale{2.0};
@@ -136,7 +136,7 @@ void Game::LoadLevel(int level)
 
         while (std::getline(ss, tileCoord, ','))
         {
-            Entity tile{m_registry->CreateEntity()};
+            Entity tile{registryInstance.CreateEntity()};
             tile.AddComponent<TransformComponent>(
                 glm::vec2{coX * texSizeBase * tileScale, coY * texSizeBase * tileScale},
                 glm::vec2{tileScale, tileScale},
@@ -159,7 +159,7 @@ void Game::LoadLevel(int level)
     const std::string chopperId{"chopper-image"};
     constexpr int chopperSpeed{80};
     m_assetStore->AddTexture(m_renderer, chopperId, "./assets/images/chopper-spritesheet.png");
-    Entity chopper{m_registry->CreateEntity()};
+    Entity chopper{registryInstance.CreateEntity()};
     chopper.AddComponent<TransformComponent>(glm::vec2{10.0, 100.0}, glm::vec2{1.0, 1.0}, 0.0);
     chopper.AddComponent<RigidBodyComponent>(glm::vec2{00.0, 0.0});
     chopper.AddComponent<SpriteComponent>(chopperId, texSizeBase, texSizeBase, 1);
@@ -175,7 +175,7 @@ void Game::LoadLevel(int level)
     constexpr int radarPxOffset{10};
     const std::string radarId{"radar-image"};
     m_assetStore->AddTexture(m_renderer, radarId, "./assets/images/radar.png");
-    Entity radar{m_registry->CreateEntity()};
+    Entity radar{registryInstance.CreateEntity()};
     radar.AddComponent<TransformComponent>(
         glm::vec2{s_windowWidth - (radarTexSize + radarPxOffset), radarPxOffset}, glm::vec2{1.0, 1.0}, 0.0);
     radar.AddComponent<RigidBodyComponent>(glm::vec2{00.0, 0.0});
@@ -184,7 +184,7 @@ void Game::LoadLevel(int level)
 
     const std::string tankId{"tank-image"};
     m_assetStore->AddTexture(m_renderer, tankId, "./assets/images/tank-panther-right.png");
-    Entity tank{m_registry->CreateEntity()};
+    Entity tank{registryInstance.CreateEntity()};
     tank.AddComponent<TransformComponent>(glm::vec2{1000.0, 10.0}, glm::vec2{1.0, 1.0}, 0.0);
     tank.AddComponent<RigidBodyComponent>(glm::vec2{-30.0, 0.0});
     tank.AddComponent<SpriteComponent>(tankId, texSizeBase, texSizeBase, 1);
@@ -194,7 +194,7 @@ void Game::LoadLevel(int level)
 
     const std::string truckId{"truck-image"};
     m_assetStore->AddTexture(m_renderer, truckId, "./assets/images/truck-ford-right.png");
-    Entity truck{m_registry->CreateEntity()};
+    Entity truck{registryInstance.CreateEntity()};
     truck.AddComponent<TransformComponent>(glm::vec2{10.0, 10.0}, glm::vec2{1.0, 1.0}, 0.0);
     truck.AddComponent<RigidBodyComponent>(glm::vec2{20.0, 0.0});
     truck.AddComponent<SpriteComponent>(truckId, texSizeBase, texSizeBase, 1);
@@ -224,17 +224,19 @@ void Game::Update()
 
     m_eventBus->Reset();
 
-    m_registry->GetSystem<DamageSystem>().SubscribeToEvents(m_eventBus);
-    m_registry->GetSystem<KeyboardControlSystem>().SubscribeToEvents(m_eventBus);
+    auto& registryInstance{Registry::GetInstance()};
 
-    m_registry->Update();
+    registryInstance.GetSystem<DamageSystem>().SubscribeToEvents(m_eventBus);
+    registryInstance.GetSystem<KeyboardControlSystem>().SubscribeToEvents(m_eventBus);
 
-    m_registry->GetSystem<MovementSystem>().Update(deltaTime);
-    m_registry->GetSystem<AnimationSystem>().Update();
-    m_registry->GetSystem<CollisionSystem>().Update(m_eventBus);
-    m_registry->GetSystem<ProjectileEmitSystem>().Update(m_registry, s_projectileId, glm::vec2(4, 4));
-    m_registry->GetSystem<ProjectileLifecycleSystem>().Update();
-    m_registry->GetSystem<CameraMovementSystem>().Update(m_camera);
+    registryInstance.Update();
+
+    registryInstance.GetSystem<MovementSystem>().Update(deltaTime);
+    registryInstance.GetSystem<AnimationSystem>().Update();
+    registryInstance.GetSystem<CollisionSystem>().Update(m_eventBus);
+    registryInstance.GetSystem<ProjectileEmitSystem>().Update(s_projectileId, glm::vec2(4, 4));
+    registryInstance.GetSystem<ProjectileLifecycleSystem>().Update();
+    registryInstance.GetSystem<CameraMovementSystem>().Update(m_camera);
 }
 
 void Game::Render()
@@ -242,10 +244,12 @@ void Game::Render()
     SDL_SetRenderDrawColor(m_renderer, 21, 21, 21, 255);
     SDL_RenderClear(m_renderer);
 
-    m_registry->GetSystem<RenderSystem>().Update(m_renderer, m_assetStore, m_camera);
+    auto& registryInstance{Registry::GetInstance()};
+
+    registryInstance.GetSystem<RenderSystem>().Update(m_renderer, m_assetStore, m_camera);
     if (m_isDebug)
     {
-        m_registry->GetSystem<RenderCollisionSystem>().Update(m_renderer, m_camera);
+        registryInstance.GetSystem<RenderCollisionSystem>().Update(m_renderer, m_camera);
     }
 
     SDL_RenderPresent(m_renderer);

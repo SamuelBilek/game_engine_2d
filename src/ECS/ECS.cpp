@@ -17,7 +17,7 @@ int Entity::GetId() const
 
 void Entity::Kill()
 {
-    m_registry->KillEntity(*this);
+    Registry::GetInstance().KillEntity(*this);
 }
 
 ////////////////////////////////////////
@@ -50,6 +50,12 @@ const Signature& System::GetComponentSignature() const
 // Registry implementation
 ////////////////////////////////////////
 
+Registry& Registry::GetInstance()
+{
+    static Registry instance{};
+    return instance;
+}
+
 Entity Registry::CreateEntity()
 {
     int entityId{};
@@ -68,7 +74,7 @@ Entity Registry::CreateEntity()
         m_freeIds.pop_front();
     }
 
-    Entity entity{entityId, this};
+    Entity entity{entityId};
     m_entitiesToBeAdded.insert(entity);
 
     Logger::Log("Entity created with id = " + std::to_string(entityId));
