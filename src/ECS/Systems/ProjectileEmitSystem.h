@@ -9,6 +9,8 @@
 #include "../Components/SpriteComponent.h"
 #include "../Components/TransformComponent.h"
 #include "../ECS.h"
+#include "../Groups.h"
+#include "../Tags.h"
 #include <SDL.h>
 #include <glm.hpp>
 
@@ -109,6 +111,7 @@ class ProjectileEmitSystem : public System
                           const RigidBodyComponent* const rigidBody = nullptr)
     {
         Entity projectile{Registry::GetInstance().CreateEntity()};
+        projectile.Group(Groups::PROJECTILES);
         projectile.AddComponent<TransformComponent>(projectilePosition, glm::vec2(1.0, 1.0), 0.0);
         projectile.AddComponent<RigidBodyComponent>(GetProjectileVelocity(projectileEmitter, rigidBody));
         projectile.AddComponent<SpriteComponent>(projectileEmitter.projectileId,

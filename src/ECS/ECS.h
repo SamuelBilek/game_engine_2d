@@ -57,6 +57,12 @@ class Entity
 
     void Kill();
 
+    // Shorthands for Tags and Groups management
+    void Tag(const std::string& tag);
+    bool HasTag(const std::string& tag) const;
+    void Group(const std::string& group);
+    bool BelongsToGroup(const std::string& group) const;
+
     // Shorthands for registry entity-component management functions
     template <typename TComponent, typename... TArgs>
     void AddComponent(TArgs&&... args);
@@ -214,6 +220,14 @@ class Registry
     std::set<Entity> m_entitiesToBeAdded{};
     std::set<Entity> m_entitiesToBeKilled{};
 
+    // Entity tags
+    std::unordered_map<std::string, Entity> m_entityPerTag{};
+    std::unordered_map<int, std::string> m_tagPerEntity{};
+
+    // Entity groups
+    std::unordered_map<std::string, std::set<Entity>> m_entitiesPerGroup{};
+    std::unordered_map<int, std::string> m_groupPerEntity{};
+
     // Ids of previously removed entities available for reuse
     std::deque<int> m_freeIds{};
 
@@ -224,10 +238,23 @@ class Registry
     // Getter for singleton instance
     static Registry& GetInstance();
 
+    void Update();
+
+    // Entity management
     Entity CreateEntity();
     void KillEntity(const Entity& entity);
 
-    void Update();
+    // Tag management
+    void TagEntity(const Entity& entity, const std::string& tag);
+    bool EntityHasTag(const Entity& entity, const std::string& tag) const;
+    Entity GetEntityByTag(const std::string& tag) const;
+    void RemoveEntityTag(const Entity& entity);
+
+    // Group management
+    void GroupEntity(const Entity& entity, const std::string& group);
+    bool EntityBelongsToGroup(const Entity& entity, const std::string& group) const;
+    std::vector<Entity> GetEntitiesByGroup(const std::string& group) const;
+    void RemoveEntityGroup(const Entity& entity);
 
     // Component functions
     template <typename TComponent, typename... TArgs>

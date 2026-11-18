@@ -41,8 +41,6 @@ class CollisionSystem : public System
                                                           bCollider.heigth)};
                 if (collisionHappened)
                 {
-                    Logger::Log("Entity " + std::to_string(entityA.GetId()) + " is colliding with entity " +
-                                std::to_string(entityB.GetId()));
                     EventBus::GetInstance().EmitEvent<CollisionEvent>(entityA, entityB);
                 }
             }

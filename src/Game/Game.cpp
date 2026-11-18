@@ -10,6 +10,7 @@
 #include "../ECS/Components/SpriteComponent.h"
 #include "../ECS/Components/TransformComponent.h"
 #include "../ECS/ECS.h"
+#include "../ECS/Groups.h"
 #include "../ECS/Systems/AnimationSystem.h"
 #include "../ECS/Systems/CameraMovementSystem.h"
 #include "../ECS/Systems/CollisionSystem.h"
@@ -20,6 +21,7 @@
 #include "../ECS/Systems/ProjectileLifecycleSystem.h"
 #include "../ECS/Systems/RenderCollisionSystem.h"
 #include "../ECS/Systems/RenderSystem.h"
+#include "../ECS/Tags.h"
 #include "../Events/KeyPressedEvent.h"
 #include "../Logger/Logger.h"
 #include <SDL.h>
@@ -135,6 +137,7 @@ void Game::LoadLevel(int level)
         while (std::getline(ss, tileCoord, ','))
         {
             Entity tile{registryInstance.CreateEntity()};
+            tile.Group(Groups::TILES);
             tile.AddComponent<TransformComponent>(
                 glm::vec2{coX * texSizeBase * tileScale, coY * texSizeBase * tileScale},
                 glm::vec2{tileScale, tileScale},
@@ -158,10 +161,12 @@ void Game::LoadLevel(int level)
     constexpr int chopperSpeed{80};
     assetStoreInstance.AddTexture(m_renderer, chopperId, "./assets/images/chopper-spritesheet.png");
     Entity chopper{registryInstance.CreateEntity()};
+    chopper.Tag(Tags::PLAYER);
     chopper.AddComponent<TransformComponent>(glm::vec2{10.0, 100.0}, glm::vec2{1.0, 1.0}, 0.0);
     chopper.AddComponent<RigidBodyComponent>(glm::vec2{00.0, 0.0});
     chopper.AddComponent<SpriteComponent>(chopperId, texSizeBase, texSizeBase, 1);
     chopper.AddComponent<AnimationComponent>(2, 15, true);
+    chopper.AddComponent<BoxColliderComponent>(texSizeBase, texSizeBase);
     chopper.AddComponent<KeyboardControlledComponent>(glm::vec2(0, -chopperSpeed),
                                                       glm::vec2(chopperSpeed, 0),
                                                       glm::vec2(0, chopperSpeed),
@@ -169,7 +174,7 @@ void Game::LoadLevel(int level)
     chopper.AddComponent<CameraFollowComponent>();
     chopper.AddComponent<HealthComponent>(100);
     chopper.AddComponent<ProjectileEmitterComponent>(
-        s_projectileId, glm::vec2(4, 4), glm::vec2(150.0, 150.0), 0, 10000, 0, true);
+        s_projectileId, glm::vec2(4, 4), glm::vec2(150.0, 150.0), 0, 10000, 10, true);
 
     constexpr int radarTexSize{64};
     constexpr int radarPxOffset{10};
@@ -185,23 +190,25 @@ void Game::LoadLevel(int level)
     const std::string tankId{"tank-image"};
     assetStoreInstance.AddTexture(m_renderer, tankId, "./assets/images/tank-panther-right.png");
     Entity tank{registryInstance.CreateEntity()};
+    tank.Group(Groups::ENEMIES);
     tank.AddComponent<TransformComponent>(glm::vec2{1000.0, 10.0}, glm::vec2{1.0, 1.0}, 0.0);
     tank.AddComponent<RigidBodyComponent>(glm::vec2{-30.0, 0.0});
     tank.AddComponent<SpriteComponent>(tankId, texSizeBase, texSizeBase, 1);
     tank.AddComponent<BoxColliderComponent>(texSizeBase, texSizeBase);
     tank.AddComponent<ProjectileEmitterComponent>(
-        s_projectileId, glm::vec2(4, 4), glm::vec2(100.0, 0.0), 5000, 3000, 0, false);
+        s_projectileId, glm::vec2(4, 4), glm::vec2(100.0, 0.0), 5000, 3000, 10, false);
     tank.AddComponent<HealthComponent>(100);
 
     const std::string truckId{"truck-image"};
     assetStoreInstance.AddTexture(m_renderer, truckId, "./assets/images/truck-ford-right.png");
     Entity truck{registryInstance.CreateEntity()};
+    truck.Group(Groups::ENEMIES);
     truck.AddComponent<TransformComponent>(glm::vec2{10.0, 10.0}, glm::vec2{1.0, 1.0}, 0.0);
     truck.AddComponent<RigidBodyComponent>(glm::vec2{20.0, 0.0});
     truck.AddComponent<SpriteComponent>(truckId, texSizeBase, texSizeBase, 1);
     truck.AddComponent<BoxColliderComponent>(texSizeBase, texSizeBase);
     truck.AddComponent<ProjectileEmitterComponent>(
-        s_projectileId, glm::vec2(4, 4), glm::vec2(0.0, 100.0), 2000, 5000, 0, false);
+        s_projectileId, glm::vec2(4, 4), glm::vec2(0.0, 100.0), 2000, 5000, 10, false);
     truck.AddComponent<HealthComponent>(100);
 
     assetStoreInstance.AddTexture(m_renderer, s_projectileId, "./assets/images/bullet.png");
