@@ -53,14 +53,20 @@ class EventBus
   private:
     std::map<std::type_index, std::unique_ptr<HandlerList>> m_subscribers{};
 
-  public:
+    // Private constructor for singleton
     EventBus()
     {
-        Logger::Log("EventBus constructor called!");
     }
+
+  public:
     ~EventBus()
     {
-        Logger::Log("EventBus destructor called!");
+    }
+
+    static EventBus& GetInstance()
+    {
+        static EventBus eventBus{};
+        return eventBus;
     }
 
     void Reset()

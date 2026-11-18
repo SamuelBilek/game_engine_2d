@@ -16,7 +16,7 @@ class CollisionSystem : public System
         RequireComponent<BoxColliderComponent>();
     }
 
-    void Update(std::unique_ptr<EventBus>& eventBus)
+    void Update()
     {
         auto& entities{GetSystemEntities()};
         for (auto i{entities.begin()}; i < entities.end() - 1; ++i)
@@ -43,7 +43,7 @@ class CollisionSystem : public System
                 {
                     Logger::Log("Entity " + std::to_string(entityA.GetId()) + " is colliding with entity " +
                                 std::to_string(entityB.GetId()));
-                    eventBus->EmitEvent<CollisionEvent>(entityA, entityB);
+                    EventBus::GetInstance().EmitEvent<CollisionEvent>(entityA, entityB);
                 }
             }
         }

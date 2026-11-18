@@ -13,9 +13,9 @@ class DamageSystem : public System
         RequireComponent<BoxColliderComponent>();
     }
 
-    void SubscribeToEvents(std::unique_ptr<EventBus>& eventBus)
+    void SubscribeToEvents()
     {
-        eventBus->SubscribeToEvent<DamageSystem, CollisionEvent>(this, &DamageSystem::OnCollision);
+        EventBus::GetInstance().SubscribeToEvent<DamageSystem, CollisionEvent>(this, &DamageSystem::OnCollision);
     }
 
     void OnCollision(CollisionEvent& event)

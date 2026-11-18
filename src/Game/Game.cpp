@@ -26,19 +26,16 @@
 #include <SDL_image.h>
 #include <algorithm>
 #include <fstream>
-#include <memory>
 #include <sstream>
 #include <string>
 
 static const std::string s_projectileId{"bullet-image"};
 
-Game::Game() : m_isRunning{false}, m_eventBus{std::make_unique<EventBus>()}
+Game::Game()
 {
-    Logger::Log("Game constructor called!");
 }
 Game::~Game()
 {
-    Logger::Log("Game destructor called!");
 }
 void Game::Initialize()
 {
@@ -98,7 +95,7 @@ void Game::ProcessInput()
             {
                 m_isDebug = !m_isDebug;
             }
-            m_eventBus->EmitEvent<KeyPressedEvent>(sdlEvent.key.keysym.sym);
+            EventBus::GetInstance().EmitEvent<KeyPressedEvent>(sdlEvent.key.keysym.sym);
             break;
         }
     }
@@ -223,18 +220,19 @@ void Game::Update()
 
     m_milisecsPreviousFrame = SDL_GetTicks();
 
-    m_eventBus->Reset();
+    auto& eventBusInstance{EventBus::GetInstance()};
+    eventBusInstance.Reset();
 
     auto& registryInstance{Registry::GetInstance()};
 
-    registryInstance.GetSystem<DamageSystem>().SubscribeToEvents(m_eventBus);
-    registryInstance.GetSystem<KeyboardControlSystem>().SubscribeToEvents(m_eventBus);
+    registryInstance.GetSystem<DamageSystem>().SubscribeToEvents();
+    registryInstance.GetSystem<KeyboardControlSystem>().SubscribeToEvents();
 
     registryInstance.Update();
 
     registryInstance.GetSystem<MovementSystem>().Update(deltaTime);
     registryInstance.GetSystem<AnimationSystem>().Update();
-    registryInstance.GetSystem<CollisionSystem>().Update(m_eventBus);
+    registryInstance.GetSystem<CollisionSystem>().Update();
     registryInstance.GetSystem<ProjectileEmitSystem>().Update(s_projectileId, glm::vec2(4, 4));
     registryInstance.GetSystem<ProjectileLifecycleSystem>().Update();
     registryInstance.GetSystem<CameraMovementSystem>().Update(m_camera);

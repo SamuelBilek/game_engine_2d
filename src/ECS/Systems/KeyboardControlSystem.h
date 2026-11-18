@@ -7,7 +7,6 @@
 #include "../Components/SpriteComponent.h"
 #include "../ECS.h"
 #include <SDL.h>
-#include <string>
 
 class KeyboardControlSystem : public System
 {
@@ -19,9 +18,10 @@ class KeyboardControlSystem : public System
         RequireComponent<RigidBodyComponent>();
     }
 
-    void SubscribeToEvents(std::unique_ptr<EventBus>& eventBus)
+    void SubscribeToEvents()
     {
-        eventBus->SubscribeToEvent<KeyboardControlSystem, KeyPressedEvent>(this, &KeyboardControlSystem::OnKeyPressed);
+        EventBus::GetInstance().SubscribeToEvent<KeyboardControlSystem, KeyPressedEvent>(
+            this, &KeyboardControlSystem::OnKeyPressed);
     }
 
     void OnKeyPressed(KeyPressedEvent& event)
