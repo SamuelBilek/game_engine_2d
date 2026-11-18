@@ -168,6 +168,8 @@ void Game::LoadLevel(int level)
                                                       glm::vec2(-chopperSpeed, 0));
     chopper.AddComponent<CameraFollowComponent>();
     chopper.AddComponent<HealthComponent>(100);
+    chopper.AddComponent<ProjectileEmitterComponent>(
+        s_projectileId, glm::vec2(4, 4), glm::vec2(150.0, 150.0), 0, 10000, 0, true);
 
     constexpr int radarTexSize{64};
     constexpr int radarPxOffset{10};
@@ -187,7 +189,8 @@ void Game::LoadLevel(int level)
     tank.AddComponent<RigidBodyComponent>(glm::vec2{-30.0, 0.0});
     tank.AddComponent<SpriteComponent>(tankId, texSizeBase, texSizeBase, 1);
     tank.AddComponent<BoxColliderComponent>(texSizeBase, texSizeBase);
-    tank.AddComponent<ProjectileEmitterComponent>(glm::vec2(100.0, 0.0), 5000, 3000, 0, false);
+    tank.AddComponent<ProjectileEmitterComponent>(
+        s_projectileId, glm::vec2(4, 4), glm::vec2(100.0, 0.0), 5000, 3000, 0, false);
     tank.AddComponent<HealthComponent>(100);
 
     const std::string truckId{"truck-image"};
@@ -197,7 +200,8 @@ void Game::LoadLevel(int level)
     truck.AddComponent<RigidBodyComponent>(glm::vec2{20.0, 0.0});
     truck.AddComponent<SpriteComponent>(truckId, texSizeBase, texSizeBase, 1);
     truck.AddComponent<BoxColliderComponent>(texSizeBase, texSizeBase);
-    truck.AddComponent<ProjectileEmitterComponent>(glm::vec2(0.0, 100.0), 2000, 5000, 0, false);
+    truck.AddComponent<ProjectileEmitterComponent>(
+        s_projectileId, glm::vec2(4, 4), glm::vec2(0.0, 100.0), 2000, 5000, 0, false);
     truck.AddComponent<HealthComponent>(100);
 
     assetStoreInstance.AddTexture(m_renderer, s_projectileId, "./assets/images/bullet.png");
@@ -227,13 +231,14 @@ void Game::Update()
 
     registryInstance.GetSystem<DamageSystem>().SubscribeToEvents();
     registryInstance.GetSystem<KeyboardControlSystem>().SubscribeToEvents();
+    registryInstance.GetSystem<ProjectileEmitSystem>().SubscribeToEvents();
 
     registryInstance.Update();
 
     registryInstance.GetSystem<MovementSystem>().Update(deltaTime);
     registryInstance.GetSystem<AnimationSystem>().Update();
     registryInstance.GetSystem<CollisionSystem>().Update();
-    registryInstance.GetSystem<ProjectileEmitSystem>().Update(s_projectileId, glm::vec2(4, 4));
+    registryInstance.GetSystem<ProjectileEmitSystem>().Update();
     registryInstance.GetSystem<ProjectileLifecycleSystem>().Update();
     registryInstance.GetSystem<CameraMovementSystem>().Update(m_camera);
 }

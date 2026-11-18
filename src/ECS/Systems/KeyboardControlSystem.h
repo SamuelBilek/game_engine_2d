@@ -2,6 +2,7 @@
 
 #include "../../EventBus/EventBus.h"
 #include "../../Events/KeyPressedEvent.h"
+#include "../../Events/PlayerShootEvent.h"
 #include "../Components/KeyboardControlledComponent.h"
 #include "../Components/RigidBodyComponent.h"
 #include "../Components/SpriteComponent.h"
@@ -58,6 +59,8 @@ class KeyboardControlSystem : public System
                 rigidBody.velocity = keyboardControl.leftVelocity;
                 sprite.srcRect.y = sprite.height * LEFT;
                 break;
+            case SDLK_SPACE:
+                EventBus::GetInstance().EmitEvent<PlayerShootEvent>();
 
             default:
                 break;

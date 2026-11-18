@@ -3,9 +3,12 @@
 #include "../ECS.h"
 #include <SDL.h>
 #include <glm.hpp>
+#include <string>
 
 struct ProjectileEmitterComponent : public Component<ProjectileEmitterComponent>
 {
+    std::string projectileId{};
+    glm::vec2 projectileSize{};
     glm::vec2 projectileVelocity{};
     int repeatFrequency{};
     int projectileDuration{};
@@ -13,10 +16,12 @@ struct ProjectileEmitterComponent : public Component<ProjectileEmitterComponent>
     bool isFriendly{};
     int lastEmissionTime{};
 
-    ProjectileEmitterComponent(glm::vec2 projectileVelocity = glm::vec2(0), int repeatFrequency = 0,
+    ProjectileEmitterComponent(std::string projectileId = "", glm::vec2 projectileSize = glm::vec2(1, 1),
+                               glm::vec2 projectileVelocity = glm::vec2(0), int repeatFrequency = 0,
                                int projectileDuration = 10000, int hitPercentDamage = 10, bool isFriendly = false)
-        : projectileVelocity{projectileVelocity}, repeatFrequency{repeatFrequency},
-          projectileDuration{projectileDuration}, hitPercentDamage{hitPercentDamage}, isFriendly{isFriendly}
+        : projectileId{projectileId}, projectileSize{projectileSize}, projectileVelocity{projectileVelocity},
+          repeatFrequency{repeatFrequency}, projectileDuration{projectileDuration}, hitPercentDamage{hitPercentDamage},
+          isFriendly{isFriendly}
     {
         lastEmissionTime = SDL_GetTicks();
     }
