@@ -19,7 +19,6 @@ class Game
     SDL_Renderer* m_renderer{nullptr};
     SDL_Rect m_camera{};
 
-    std::unique_ptr<AssetStore> m_assetStore{};
     std::unique_ptr<EventBus> m_eventBus{};
 
   public:

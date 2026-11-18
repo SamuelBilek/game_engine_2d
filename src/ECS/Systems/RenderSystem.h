@@ -1,13 +1,11 @@
 #pragma once
 
 #include "../../AssetStore/AssetStore.h"
-#include "../../Logger/Logger.h"
 #include "../Components/SpriteComponent.h"
 #include "../Components/TransformComponent.h"
 #include "../ECS.h"
 #include "SDL.h"
 #include <algorithm>
-#include <memory>
 #include <ranges>
 #include <vector>
 
@@ -20,7 +18,7 @@ class RenderSystem : public System
         RequireComponent<SpriteComponent>();
     }
 
-    void Update(SDL_Renderer* renderer, std::unique_ptr<AssetStore>& assetStore, SDL_Rect& camera)
+    void Update(SDL_Renderer* renderer, SDL_Rect& camera)
     {
         auto filteredEntities{GetSystemEntities() | std::ranges::views::filter(SatisfiesRequirements)};
         std::vector<Entity> zSortedEntities{filteredEntities.begin(), filteredEntities.end()};
@@ -41,7 +39,7 @@ class RenderSystem : public System
                 static_cast<int>(sprite.height * transform.scale.y),
             };
             SDL_RenderCopyEx(renderer,
-                             assetStore->GetTexture(sprite.assetId),
+                             AssetStore::GetInstance().GetTexture(sprite.assetId),
                              &srcRect,
                              &dstRect,
                              transform.rotation,

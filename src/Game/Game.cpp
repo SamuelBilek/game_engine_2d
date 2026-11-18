@@ -32,8 +32,7 @@
 
 static const std::string s_projectileId{"bullet-image"};
 
-Game::Game()
-    : m_isRunning{false}, m_assetStore{std::make_unique<AssetStore>()}, m_eventBus{std::make_unique<EventBus>()}
+Game::Game() : m_isRunning{false}, m_eventBus{std::make_unique<EventBus>()}
 {
     Logger::Log("Game constructor called!");
 }
@@ -107,6 +106,8 @@ void Game::ProcessInput()
 
 void Game::LoadLevel(int level)
 {
+    auto& assetStoreInstance{AssetStore::GetInstance()};
+
     constexpr int texSizeBase{32};
     auto& registryInstance{Registry::GetInstance()};
     registryInstance.AddSystem<MovementSystem>();
@@ -122,7 +123,7 @@ void Game::LoadLevel(int level)
 
     const std::string mapId{"map-tiles"};
     constexpr double tileScale{2.0};
-    m_assetStore->AddTexture(m_renderer, mapId, "./assets/tilemaps/jungle.png");
+    assetStoreInstance.AddTexture(m_renderer, mapId, "./assets/tilemaps/jungle.png");
 
     std::ifstream mapFile{"./assets/tilemaps/jungle.map"};
     std::string line{};
@@ -158,7 +159,7 @@ void Game::LoadLevel(int level)
 
     const std::string chopperId{"chopper-image"};
     constexpr int chopperSpeed{80};
-    m_assetStore->AddTexture(m_renderer, chopperId, "./assets/images/chopper-spritesheet.png");
+    assetStoreInstance.AddTexture(m_renderer, chopperId, "./assets/images/chopper-spritesheet.png");
     Entity chopper{registryInstance.CreateEntity()};
     chopper.AddComponent<TransformComponent>(glm::vec2{10.0, 100.0}, glm::vec2{1.0, 1.0}, 0.0);
     chopper.AddComponent<RigidBodyComponent>(glm::vec2{00.0, 0.0});
@@ -174,7 +175,7 @@ void Game::LoadLevel(int level)
     constexpr int radarTexSize{64};
     constexpr int radarPxOffset{10};
     const std::string radarId{"radar-image"};
-    m_assetStore->AddTexture(m_renderer, radarId, "./assets/images/radar.png");
+    assetStoreInstance.AddTexture(m_renderer, radarId, "./assets/images/radar.png");
     Entity radar{registryInstance.CreateEntity()};
     radar.AddComponent<TransformComponent>(
         glm::vec2{s_windowWidth - (radarTexSize + radarPxOffset), radarPxOffset}, glm::vec2{1.0, 1.0}, 0.0);
@@ -183,7 +184,7 @@ void Game::LoadLevel(int level)
     radar.AddComponent<AnimationComponent>(8, 5, true);
 
     const std::string tankId{"tank-image"};
-    m_assetStore->AddTexture(m_renderer, tankId, "./assets/images/tank-panther-right.png");
+    assetStoreInstance.AddTexture(m_renderer, tankId, "./assets/images/tank-panther-right.png");
     Entity tank{registryInstance.CreateEntity()};
     tank.AddComponent<TransformComponent>(glm::vec2{1000.0, 10.0}, glm::vec2{1.0, 1.0}, 0.0);
     tank.AddComponent<RigidBodyComponent>(glm::vec2{-30.0, 0.0});
@@ -193,7 +194,7 @@ void Game::LoadLevel(int level)
     tank.AddComponent<HealthComponent>(100);
 
     const std::string truckId{"truck-image"};
-    m_assetStore->AddTexture(m_renderer, truckId, "./assets/images/truck-ford-right.png");
+    assetStoreInstance.AddTexture(m_renderer, truckId, "./assets/images/truck-ford-right.png");
     Entity truck{registryInstance.CreateEntity()};
     truck.AddComponent<TransformComponent>(glm::vec2{10.0, 10.0}, glm::vec2{1.0, 1.0}, 0.0);
     truck.AddComponent<RigidBodyComponent>(glm::vec2{20.0, 0.0});
@@ -202,7 +203,7 @@ void Game::LoadLevel(int level)
     truck.AddComponent<ProjectileEmitterComponent>(glm::vec2(0.0, 100.0), 2000, 5000, 0, false);
     truck.AddComponent<HealthComponent>(100);
 
-    m_assetStore->AddTexture(m_renderer, s_projectileId, "./assets/images/bullet.png");
+    assetStoreInstance.AddTexture(m_renderer, s_projectileId, "./assets/images/bullet.png");
 }
 
 void Game::Setup()
@@ -246,7 +247,7 @@ void Game::Render()
 
     auto& registryInstance{Registry::GetInstance()};
 
-    registryInstance.GetSystem<RenderSystem>().Update(m_renderer, m_assetStore, m_camera);
+    registryInstance.GetSystem<RenderSystem>().Update(m_renderer, m_camera);
     if (m_isDebug)
     {
         registryInstance.GetSystem<RenderCollisionSystem>().Update(m_renderer, m_camera);

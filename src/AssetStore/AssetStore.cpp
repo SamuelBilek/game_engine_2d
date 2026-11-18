@@ -7,13 +7,17 @@
 
 AssetStore::AssetStore()
 {
-    Logger::Log("Asset Store constructor called!");
 }
 
 AssetStore::~AssetStore()
 {
     ClearAssets();
-    Logger::Log("Asset Store destructor called!");
+}
+
+AssetStore& AssetStore::GetInstance()
+{
+    static AssetStore assetStore{};
+    return assetStore;
 }
 
 void AssetStore::ClearAssets()
