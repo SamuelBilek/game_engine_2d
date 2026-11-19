@@ -205,6 +205,14 @@ void Registry::Update()
 
         m_entityComponentSignatures[entity.GetId()].reset();
 
+        for (auto& pool : m_componentPools)
+        {
+            if (pool)
+            {
+                pool->Remove(entity.GetId());
+            }
+        }
+
         m_freeIds.push_back(entity.GetId());
 
         RemoveEntityTag(entity);
