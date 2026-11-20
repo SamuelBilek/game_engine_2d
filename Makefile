@@ -11,6 +11,8 @@ IMGUI_DIR = $(LIBS_DIR)/imgui
 LUA_DIR = $(LIBS_DIR)/lua
 SOL_DIR = $(LIBS_DIR)/sol
 
+IMGUI_SRC = $(shell find $(IMGUI_DIR) -name '*.cpp')
+
 DBGFLAGS = -g -O0
 
 # We provide both the top level libs dir and individual subdirs
@@ -32,7 +34,7 @@ LDLIBS = $(LD_SDL) -llua54
 build:
 	mkdir -p $(DIST_DIR)
 
-	$(CXX) $(CXXFLAGS) $(SRC) $(LDFLAGS) $(LDLIBS) -o $(DIST_DIR)/$(EXEC_NAME)
+	$(CXX) $(CXXFLAGS) $(SRC) $(IMGUI_SRC) $(LDFLAGS) $(LDLIBS) -o $(DIST_DIR)/$(EXEC_NAME)
 
 	cp -r $(SDL_DIR)/bin/* $(DIST_DIR)/
 	cp -r $(LUA_DIR)/*.dll $(DIST_DIR)/

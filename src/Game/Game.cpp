@@ -21,6 +21,7 @@
 #include "../ECS/Systems/ProjectileEmitSystem.h"
 #include "../ECS/Systems/ProjectileLifecycleSystem.h"
 #include "../ECS/Systems/RenderCollisionSystem.h"
+#include "../ECS/Systems/RenderGUISystem.h"
 #include "../ECS/Systems/RenderHealthSystem.h"
 #include "../ECS/Systems/RenderSystem.h"
 #include "../ECS/Systems/RenderTextSystem.h"
@@ -31,6 +32,9 @@
 #include <SDL_image.h>
 #include <algorithm>
 #include <fstream>
+#include <imgui.h>
+#include <imgui_impl_sdl2.h>
+#include <imgui_impl_sdlrenderer2.h>
 #include <sstream>
 #include <string>
 
@@ -75,15 +79,26 @@ void Game::Initialize()
         Logger::Err("Error creating SDL Renderer.");
     }
 
-    // SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    [[maybe_unused]] ImGuiIO& io{ImGui::GetIO()};
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
-    m_isRunning = true;
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplSDL2_InitForSDLRenderer(m_window, m_renderer);
+    ImGui_ImplSDLRenderer2_Init(m_renderer);
 
     // Initialize the camera
     m_camera.x = 0;
     m_camera.y = 0;
     m_camera.w = s_windowWidth;
     m_camera.h = s_windowHeight;
+
+    // SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
+
+    m_isRunning = true;
 }
 
 void Game::ProcessInput()
@@ -91,6 +106,16 @@ void Game::ProcessInput()
     SDL_Event sdlEvent{};
     while (SDL_PollEvent(&sdlEvent))
     {
+        ImGui_ImplSDL2_ProcessEvent(&sdlEvent);
+        ImGuiIO& io{ImGui::GetIO()};
+
+        int mouseX{};
+        int mouseY{};
+        const int buttons{static_cast<int>(SDL_GetMouseState(&mouseX, &mouseY))};
+        io.MousePos = ImVec2{static_cast<float>(mouseX), static_cast<float>(mouseY)};
+        io.MouseDown[0] = buttons & SDL_BUTTON(SDL_BUTTON_LEFT);
+        io.MouseDown[1] = buttons & SDL_BUTTON(SDL_BUTTON_RIGHT);
+
         switch (sdlEvent.type)
         {
         case SDL_QUIT:
@@ -101,7 +126,7 @@ void Game::ProcessInput()
             {
                 m_isRunning = false;
             }
-            if (sdlEvent.key.keysym.sym == SDLK_d)
+            if (sdlEvent.key.keysym.sym == SDLK_F1)
             {
                 m_isDebug = !m_isDebug;
             }
@@ -129,6 +154,7 @@ void Game::LoadLevel(int level)
     registryInstance.AddSystem<ProjectileLifecycleSystem>();
     registryInstance.AddSystem<RenderTextSystem>();
     registryInstance.AddSystem<RenderHealthSystem>();
+    registryInstance.AddSystem<RenderGUISystem>();
 
     const std::string mapId{"map-tiles"};
     constexpr double tileScale{2.0};
@@ -285,6 +311,8 @@ void Game::Render()
     if (m_isDebug)
     {
         registryInstance.GetSystem<RenderCollisionSystem>().Update(m_renderer, m_camera);
+
+        registryInstance.GetSystem<RenderGUISystem>().Update(m_renderer, m_camera);
     }
 
     SDL_RenderPresent(m_renderer);
@@ -303,6 +331,10 @@ void Game::Run()
 
 void Game::Destroy()
 {
+    ImGui_ImplSDLRenderer2_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+
     SDL_DestroyRenderer(m_renderer);
     m_renderer = nullptr;
     SDL_DestroyWindow(m_window);
