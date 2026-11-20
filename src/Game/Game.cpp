@@ -8,6 +8,7 @@
 #include "../ECS/Components/ProjectileEmitterComponent.h"
 #include "../ECS/Components/RigidBodyComponent.h"
 #include "../ECS/Components/SpriteComponent.h"
+#include "../ECS/Components/TextLabelComponent.h"
 #include "../ECS/Components/TransformComponent.h"
 #include "../ECS/ECS.h"
 #include "../ECS/Groups.h"
@@ -20,7 +21,9 @@
 #include "../ECS/Systems/ProjectileEmitSystem.h"
 #include "../ECS/Systems/ProjectileLifecycleSystem.h"
 #include "../ECS/Systems/RenderCollisionSystem.h"
+#include "../ECS/Systems/RenderHealthSystem.h"
 #include "../ECS/Systems/RenderSystem.h"
+#include "../ECS/Systems/RenderTextSystem.h"
 #include "../ECS/Tags.h"
 #include "../Events/KeyPressedEvent.h"
 #include "../Logger/Logger.h"
@@ -45,6 +48,11 @@ void Game::Initialize()
     {
         Logger::Err("Error initializing SDL.");
         return;
+    }
+
+    if (TTF_Init() != 0)
+    {
+        Logger::Err("Error initializing SDL TTF.");
     }
 
     SDL_DisplayMode displayMode{};
@@ -119,6 +127,8 @@ void Game::LoadLevel(int level)
     registryInstance.AddSystem<CameraMovementSystem>();
     registryInstance.AddSystem<ProjectileEmitSystem>();
     registryInstance.AddSystem<ProjectileLifecycleSystem>();
+    registryInstance.AddSystem<RenderTextSystem>();
+    registryInstance.AddSystem<RenderHealthSystem>();
 
     const std::string mapId{"map-tiles"};
     constexpr double tileScale{2.0};
@@ -157,6 +167,9 @@ void Game::LoadLevel(int level)
     s_mapWidth = coX * texSizeBase * tileScale;
     s_mapHeigth = coY * texSizeBase * tileScale;
 
+    const std::string healthPercantageFontId{"charriot11-font"};
+    assetStoreInstance.AddFont(healthPercantageFontId, "./assets/fonts/charriot.ttf", 11);
+
     const std::string chopperId{"chopper-image"};
     constexpr int chopperSpeed{80};
     assetStoreInstance.AddTexture(m_renderer, chopperId, "./assets/images/chopper-spritesheet.png");
@@ -172,7 +185,8 @@ void Game::LoadLevel(int level)
                                                       glm::vec2(0, chopperSpeed),
                                                       glm::vec2(-chopperSpeed, 0));
     chopper.AddComponent<CameraFollowComponent>();
-    chopper.AddComponent<HealthComponent>(100);
+    chopper.AddComponent<HealthComponent>(
+        100, HealthComponent::PercentageDisplay{healthPercantageFontId}, HealthComponent::BarDisplay{});
     chopper.AddComponent<ProjectileEmitterComponent>(
         s_projectileId, glm::vec2(4, 4), glm::vec2(150.0, 150.0), 0, 10000, 10, true);
 
@@ -197,7 +211,8 @@ void Game::LoadLevel(int level)
     tank.AddComponent<BoxColliderComponent>(texSizeBase, texSizeBase);
     tank.AddComponent<ProjectileEmitterComponent>(
         s_projectileId, glm::vec2(4, 4), glm::vec2(100.0, 0.0), 5000, 3000, 10, false);
-    tank.AddComponent<HealthComponent>(100);
+    tank.AddComponent<HealthComponent>(
+        100, HealthComponent::PercentageDisplay{healthPercantageFontId}, HealthComponent::BarDisplay{});
 
     const std::string truckId{"truck-image"};
     assetStoreInstance.AddTexture(m_renderer, truckId, "./assets/images/truck-ford-right.png");
@@ -209,9 +224,16 @@ void Game::LoadLevel(int level)
     truck.AddComponent<BoxColliderComponent>(texSizeBase, texSizeBase);
     truck.AddComponent<ProjectileEmitterComponent>(
         s_projectileId, glm::vec2(4, 4), glm::vec2(0.0, 100.0), 2000, 5000, 10, false);
-    truck.AddComponent<HealthComponent>(100);
+    truck.AddComponent<HealthComponent>(
+        100, HealthComponent::PercentageDisplay{healthPercantageFontId}, HealthComponent::BarDisplay{});
 
     assetStoreInstance.AddTexture(m_renderer, s_projectileId, "./assets/images/bullet.png");
+
+    const std::string charriotFontId{"charriot-font"};
+    assetStoreInstance.AddFont(charriotFontId, "./assets/fonts/charriot.ttf", 20);
+    Entity label{registryInstance.CreateEntity()};
+    label.AddComponent<TextLabelComponent>(
+        glm::vec2(s_windowWidth / 2 - 40, 10.0), "CHOPPER 1.0", charriotFontId, SDL_Color{0, 255, 0}, true);
 }
 
 void Game::Setup()
@@ -258,6 +280,8 @@ void Game::Render()
     auto& registryInstance{Registry::GetInstance()};
 
     registryInstance.GetSystem<RenderSystem>().Update(m_renderer, m_camera);
+    registryInstance.GetSystem<RenderHealthSystem>().Update(m_renderer, m_camera);
+    registryInstance.GetSystem<RenderTextSystem>().Update(m_renderer, m_camera);
     if (m_isDebug)
     {
         registryInstance.GetSystem<RenderCollisionSystem>().Update(m_renderer, m_camera);
