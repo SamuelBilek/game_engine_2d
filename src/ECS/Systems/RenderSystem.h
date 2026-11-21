@@ -31,6 +31,16 @@ class RenderSystem : public System
             const auto& transform{entity.GetComponent<TransformComponent>()};
             const auto& sprite{entity.GetComponent<SpriteComponent>()};
 
+            bool isOutsideCameraView{transform.position.x < camera.x - (transform.scale.x * sprite.width) ||
+                                     transform.position.x > camera.x + camera.w ||
+                                     transform.position.y < camera.y - (transform.scale.x * sprite.width) ||
+                                     transform.position.y > camera.y + camera.h};
+
+            if (isOutsideCameraView && !sprite.isFixed)
+            {
+                continue;
+            }
+
             SDL_Rect srcRect{sprite.srcRect}; // source rect of the original sprite texture
             SDL_Rect dstRect{
                 static_cast<int>(transform.position.x - (sprite.isFixed ? 0 : camera.x)),
@@ -44,7 +54,7 @@ class RenderSystem : public System
                              &dstRect,
                              transform.rotation,
                              nullptr,
-                             SDL_FLIP_NONE);
+                             sprite.flip);
         }
     }
 

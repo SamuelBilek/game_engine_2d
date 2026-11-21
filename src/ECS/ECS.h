@@ -171,6 +171,8 @@ class Pool : public IPool
     void Clear()
     {
         m_data.clear();
+        m_entityIdToIndex.clear();
+        m_indexToEntityId.clear();
         m_size = 0;
     }
 
@@ -191,9 +193,9 @@ class Pool : public IPool
         int index{m_size};
         m_entityIdToIndex.emplace(entityId, index);
         m_indexToEntityId.emplace(index, entityId);
-        if (index >= static_cast<int>(m_data.capacity()))
+        if (index >= static_cast<int>(m_data.size()))
         {
-            m_data.resize(m_size * 2);
+            m_data.resize(std::max(1, static_cast<int>(m_data.size()) * 2));
         }
         m_data[index] = object;
         ++m_size;

@@ -11,6 +11,7 @@ struct SpriteComponent : Component<SpriteComponent>
     int width{};
     int height{};
     int zIndex{};
+    SDL_RendererFlip flip{SDL_FLIP_NONE};
     bool isFixed{};
     SDL_Rect srcRect;
 

@@ -203,7 +203,7 @@ void Game::LoadLevel(int level)
     chopper.Tag(Tags::PLAYER);
     chopper.AddComponent<TransformComponent>(glm::vec2{10.0, 100.0}, glm::vec2{1.0, 1.0}, 0.0);
     chopper.AddComponent<RigidBodyComponent>(glm::vec2{00.0, 0.0});
-    chopper.AddComponent<SpriteComponent>(chopperId, texSizeBase, texSizeBase, 1);
+    chopper.AddComponent<SpriteComponent>(chopperId, texSizeBase, texSizeBase, 2);
     chopper.AddComponent<AnimationComponent>(2, 15, true);
     chopper.AddComponent<BoxColliderComponent>(texSizeBase, texSizeBase);
     chopper.AddComponent<KeyboardControlledComponent>(glm::vec2(0, -chopperSpeed),
@@ -224,19 +224,19 @@ void Game::LoadLevel(int level)
     radar.AddComponent<TransformComponent>(
         glm::vec2{s_windowWidth - (radarTexSize + radarPxOffset), radarPxOffset}, glm::vec2{1.0, 1.0}, 0.0);
     radar.AddComponent<RigidBodyComponent>(glm::vec2{00.0, 0.0});
-    radar.AddComponent<SpriteComponent>(radarId, radarTexSize, radarTexSize, 2, true);
+    radar.AddComponent<SpriteComponent>(radarId, radarTexSize, radarTexSize, 99, true);
     radar.AddComponent<AnimationComponent>(8, 5, true);
 
     const std::string tankId{"tank-image"};
     assetStoreInstance.AddTexture(m_renderer, tankId, "./assets/images/tank-panther-right.png");
     Entity tank{registryInstance.CreateEntity()};
     tank.Group(Groups::ENEMIES);
-    tank.AddComponent<TransformComponent>(glm::vec2{1000.0, 10.0}, glm::vec2{1.0, 1.0}, 0.0);
-    tank.AddComponent<RigidBodyComponent>(glm::vec2{-30.0, 0.0});
+    tank.AddComponent<TransformComponent>(glm::vec2{500.0, 500.0}, glm::vec2{1.0, 1.0}, 0.0);
+    tank.AddComponent<RigidBodyComponent>(glm::vec2{20.0, 0.0});
     tank.AddComponent<SpriteComponent>(tankId, texSizeBase, texSizeBase, 1);
     tank.AddComponent<BoxColliderComponent>(texSizeBase, texSizeBase);
-    tank.AddComponent<ProjectileEmitterComponent>(
-        s_projectileId, glm::vec2(4, 4), glm::vec2(100.0, 0.0), 5000, 3000, 10, false);
+    // tank.AddComponent<ProjectileEmitterComponent>(
+    //     s_projectileId, glm::vec2(4, 4), glm::vec2(100.0, 0.0), 5000, 3000, 10, false);
     tank.AddComponent<HealthComponent>(
         100, HealthComponent::PercentageDisplay{healthPercantageFontId}, HealthComponent::BarDisplay{});
 
@@ -244,16 +244,30 @@ void Game::LoadLevel(int level)
     assetStoreInstance.AddTexture(m_renderer, truckId, "./assets/images/truck-ford-right.png");
     Entity truck{registryInstance.CreateEntity()};
     truck.Group(Groups::ENEMIES);
-    truck.AddComponent<TransformComponent>(glm::vec2{10.0, 10.0}, glm::vec2{1.0, 1.0}, 0.0);
+    truck.AddComponent<TransformComponent>(glm::vec2{120.0, 500.0}, glm::vec2{1.0, 1.0}, 0.0);
     truck.AddComponent<RigidBodyComponent>(glm::vec2{20.0, 0.0});
     truck.AddComponent<SpriteComponent>(truckId, texSizeBase, texSizeBase, 1);
     truck.AddComponent<BoxColliderComponent>(texSizeBase, texSizeBase);
     truck.AddComponent<ProjectileEmitterComponent>(
-        s_projectileId, glm::vec2(4, 4), glm::vec2(0.0, 100.0), 2000, 5000, 10, false);
+        s_projectileId, glm::vec2(4, 4), glm::vec2(0.0, -100.0), 2000, 5000, 10, false);
     truck.AddComponent<HealthComponent>(
         100, HealthComponent::PercentageDisplay{healthPercantageFontId}, HealthComponent::BarDisplay{});
 
     assetStoreInstance.AddTexture(m_renderer, s_projectileId, "./assets/images/bullet.png");
+
+    const std::string treeId{"tree-image"};
+    assetStoreInstance.AddTexture(m_renderer, treeId, "./assets/images/tree.png");
+    Entity tree{registryInstance.CreateEntity()};
+    tree.Group(Groups::OBSTACLES);
+    tree.AddComponent<TransformComponent>(glm::vec2{600.0, 495.0}, glm::vec2{1.0, 1.0}, 0.0);
+    tree.AddComponent<SpriteComponent>(treeId, texSizeBase / 2, texSizeBase, 1);
+    tree.AddComponent<BoxColliderComponent>(texSizeBase / 2, texSizeBase);
+
+    Entity treeB{registryInstance.CreateEntity()};
+    treeB.Group(Groups::OBSTACLES);
+    treeB.AddComponent<TransformComponent>(glm::vec2{400.0, 495.0}, glm::vec2{1.0, 1.0}, 0.0);
+    treeB.AddComponent<SpriteComponent>(treeId, texSizeBase / 2, texSizeBase, 1);
+    treeB.AddComponent<BoxColliderComponent>(texSizeBase / 2, texSizeBase);
 
     const std::string charriotFontId{"charriot-font"};
     assetStoreInstance.AddFont(charriotFontId, "./assets/fonts/charriot.ttf", 20);
@@ -284,6 +298,7 @@ void Game::Update()
 
     auto& registryInstance{Registry::GetInstance()};
 
+    registryInstance.GetSystem<MovementSystem>().SubscribeToEvents();
     registryInstance.GetSystem<DamageSystem>().SubscribeToEvents();
     registryInstance.GetSystem<KeyboardControlSystem>().SubscribeToEvents();
     registryInstance.GetSystem<ProjectileEmitSystem>().SubscribeToEvents();
