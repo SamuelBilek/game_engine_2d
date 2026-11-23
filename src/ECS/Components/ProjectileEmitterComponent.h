@@ -16,7 +16,7 @@ struct ProjectileEmitterComponent : public Component<ProjectileEmitterComponent>
     bool isFriendly{};
     int lastEmissionTime{};
 
-    ProjectileEmitterComponent(std::string projectileId = "", glm::vec2 projectileSize = glm::vec2(1, 1),
+    ProjectileEmitterComponent(std::string projectileId = "", glm::vec2 projectileSize = glm::vec2(4, 4),
                                glm::vec2 projectileVelocity = glm::vec2(0), int repeatFrequency = 0,
                                int projectileDuration = 10000, int hitPercentDamage = 10, bool isFriendly = false)
         : projectileId{projectileId}, projectileSize{projectileSize}, projectileVelocity{projectileVelocity},

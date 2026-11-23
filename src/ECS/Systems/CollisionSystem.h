@@ -19,7 +19,7 @@ class CollisionSystem : public System
     void Update()
     {
         auto& entities{GetSystemEntities()};
-        for (auto i{entities.begin()}; i < entities.end() - 1; ++i)
+        for (auto i{entities.begin()}; i < entities.end(); ++i)
         {
             Entity& entityA{*i};
             const auto& aTransform{entityA.GetComponent<TransformComponent>()};

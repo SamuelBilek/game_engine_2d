@@ -1,17 +1,10 @@
 #include "Game.h"
 #include "../AssetStore/AssetStore.h"
 #include "../ECS/Components/AnimationComponent.h"
-#include "../ECS/Components/BoxColliderComponent.h"
-#include "../ECS/Components/CameraFollowComponent.h"
-#include "../ECS/Components/HealthComponent.h"
-#include "../ECS/Components/KeyboardControlledComponent.h"
 #include "../ECS/Components/ProjectileEmitterComponent.h"
-#include "../ECS/Components/RigidBodyComponent.h"
 #include "../ECS/Components/SpriteComponent.h"
 #include "../ECS/Components/TextLabelComponent.h"
-#include "../ECS/Components/TransformComponent.h"
 #include "../ECS/ECS.h"
-#include "../ECS/Groups.h"
 #include "../ECS/Systems/AnimationSystem.h"
 #include "../ECS/Systems/CameraMovementSystem.h"
 #include "../ECS/Systems/CollisionSystem.h"
@@ -25,20 +18,15 @@
 #include "../ECS/Systems/RenderHealthSystem.h"
 #include "../ECS/Systems/RenderSystem.h"
 #include "../ECS/Systems/RenderTextSystem.h"
-#include "../ECS/Tags.h"
 #include "../Events/KeyPressedEvent.h"
 #include "../Logger/Logger.h"
+#include "LevelLoader.h"
 #include <SDL.h>
 #include <SDL_image.h>
 #include <algorithm>
-#include <fstream>
 #include <imgui.h>
 #include <imgui_impl_sdl2.h>
 #include <imgui_impl_sdlrenderer2.h>
-#include <sstream>
-#include <string>
-
-static const std::string s_projectileId{"bullet-image"};
 
 Game::Game()
 {
@@ -136,11 +124,8 @@ void Game::ProcessInput()
     }
 }
 
-void Game::LoadLevel(int level)
+void Game::Setup()
 {
-    auto& assetStoreInstance{AssetStore::GetInstance()};
-
-    constexpr int texSizeBase{32};
     auto& registryInstance{Registry::GetInstance()};
     registryInstance.AddSystem<MovementSystem>();
     registryInstance.AddSystem<RenderSystem>();
@@ -156,129 +141,7 @@ void Game::LoadLevel(int level)
     registryInstance.AddSystem<RenderHealthSystem>();
     registryInstance.AddSystem<RenderGUISystem>();
 
-    const std::string mapId{"map-tiles"};
-    constexpr double tileScale{2.0};
-    assetStoreInstance.AddTexture(m_renderer, mapId, "./assets/tilemaps/jungle.png");
-
-    std::ifstream mapFile{"./assets/tilemaps/jungle.map"};
-    std::string line{};
-    int coY{0};
-    int coX{0};
-    while (std::getline(mapFile, line))
-    {
-        coX = 0;
-        std::stringstream ss{line};
-        std::string tileCoord{};
-
-        while (std::getline(ss, tileCoord, ','))
-        {
-            Entity tile{registryInstance.CreateEntity()};
-            tile.Group(Groups::TILES);
-            tile.AddComponent<TransformComponent>(
-                glm::vec2{coX * texSizeBase * tileScale, coY * texSizeBase * tileScale},
-                glm::vec2{tileScale, tileScale},
-                0.0);
-
-            // convert chars to numbers
-            int xCoord{tileCoord[1] - '0'};
-            int yCoord{tileCoord[0] - '0'};
-            tile.AddComponent<SpriteComponent>(
-                mapId, texSizeBase, texSizeBase, 0, false, xCoord * texSizeBase, yCoord * texSizeBase);
-            ++coX;
-        }
-        ++coY;
-    }
-    mapFile.close();
-
-    s_mapWidth = coX * texSizeBase * tileScale;
-    s_mapHeigth = coY * texSizeBase * tileScale;
-
-    const std::string healthPercantageFontId{"charriot11-font"};
-    assetStoreInstance.AddFont(healthPercantageFontId, "./assets/fonts/charriot.ttf", 11);
-
-    const std::string chopperId{"chopper-image"};
-    constexpr int chopperSpeed{80};
-    assetStoreInstance.AddTexture(m_renderer, chopperId, "./assets/images/chopper-spritesheet.png");
-    Entity chopper{registryInstance.CreateEntity()};
-    chopper.Tag(Tags::PLAYER);
-    chopper.AddComponent<TransformComponent>(glm::vec2{10.0, 100.0}, glm::vec2{1.0, 1.0}, 0.0);
-    chopper.AddComponent<RigidBodyComponent>(glm::vec2{00.0, 0.0});
-    chopper.AddComponent<SpriteComponent>(chopperId, texSizeBase, texSizeBase, 2);
-    chopper.AddComponent<AnimationComponent>(2, 15, true);
-    chopper.AddComponent<BoxColliderComponent>(texSizeBase, texSizeBase);
-    chopper.AddComponent<KeyboardControlledComponent>(glm::vec2(0, -chopperSpeed),
-                                                      glm::vec2(chopperSpeed, 0),
-                                                      glm::vec2(0, chopperSpeed),
-                                                      glm::vec2(-chopperSpeed, 0));
-    chopper.AddComponent<CameraFollowComponent>();
-    chopper.AddComponent<HealthComponent>(
-        100, HealthComponent::PercentageDisplay{healthPercantageFontId}, HealthComponent::BarDisplay{});
-    chopper.AddComponent<ProjectileEmitterComponent>(
-        s_projectileId, glm::vec2(4, 4), glm::vec2(150.0, 150.0), 0, 10000, 10, true);
-
-    constexpr int radarTexSize{64};
-    constexpr int radarPxOffset{10};
-    const std::string radarId{"radar-image"};
-    assetStoreInstance.AddTexture(m_renderer, radarId, "./assets/images/radar.png");
-    Entity radar{registryInstance.CreateEntity()};
-    radar.AddComponent<TransformComponent>(
-        glm::vec2{s_windowWidth - (radarTexSize + radarPxOffset), radarPxOffset}, glm::vec2{1.0, 1.0}, 0.0);
-    radar.AddComponent<RigidBodyComponent>(glm::vec2{00.0, 0.0});
-    radar.AddComponent<SpriteComponent>(radarId, radarTexSize, radarTexSize, 99, true);
-    radar.AddComponent<AnimationComponent>(8, 5, true);
-
-    const std::string tankId{"tank-image"};
-    assetStoreInstance.AddTexture(m_renderer, tankId, "./assets/images/tank-panther-right.png");
-    Entity tank{registryInstance.CreateEntity()};
-    tank.Group(Groups::ENEMIES);
-    tank.AddComponent<TransformComponent>(glm::vec2{500.0, 500.0}, glm::vec2{1.0, 1.0}, 0.0);
-    tank.AddComponent<RigidBodyComponent>(glm::vec2{20.0, 0.0});
-    tank.AddComponent<SpriteComponent>(tankId, texSizeBase, texSizeBase, 1);
-    tank.AddComponent<BoxColliderComponent>(texSizeBase, texSizeBase);
-    // tank.AddComponent<ProjectileEmitterComponent>(
-    //     s_projectileId, glm::vec2(4, 4), glm::vec2(100.0, 0.0), 5000, 3000, 10, false);
-    tank.AddComponent<HealthComponent>(
-        100, HealthComponent::PercentageDisplay{healthPercantageFontId}, HealthComponent::BarDisplay{});
-
-    const std::string truckId{"truck-image"};
-    assetStoreInstance.AddTexture(m_renderer, truckId, "./assets/images/truck-ford-right.png");
-    Entity truck{registryInstance.CreateEntity()};
-    truck.Group(Groups::ENEMIES);
-    truck.AddComponent<TransformComponent>(glm::vec2{120.0, 500.0}, glm::vec2{1.0, 1.0}, 0.0);
-    truck.AddComponent<RigidBodyComponent>(glm::vec2{20.0, 0.0});
-    truck.AddComponent<SpriteComponent>(truckId, texSizeBase, texSizeBase, 1);
-    truck.AddComponent<BoxColliderComponent>(texSizeBase, texSizeBase);
-    truck.AddComponent<ProjectileEmitterComponent>(
-        s_projectileId, glm::vec2(4, 4), glm::vec2(0.0, -100.0), 2000, 5000, 10, false);
-    truck.AddComponent<HealthComponent>(
-        100, HealthComponent::PercentageDisplay{healthPercantageFontId}, HealthComponent::BarDisplay{});
-
-    assetStoreInstance.AddTexture(m_renderer, s_projectileId, "./assets/images/bullet.png");
-
-    const std::string treeId{"tree-image"};
-    assetStoreInstance.AddTexture(m_renderer, treeId, "./assets/images/tree.png");
-    Entity tree{registryInstance.CreateEntity()};
-    tree.Group(Groups::OBSTACLES);
-    tree.AddComponent<TransformComponent>(glm::vec2{600.0, 495.0}, glm::vec2{1.0, 1.0}, 0.0);
-    tree.AddComponent<SpriteComponent>(treeId, texSizeBase / 2, texSizeBase, 1);
-    tree.AddComponent<BoxColliderComponent>(texSizeBase / 2, texSizeBase);
-
-    Entity treeB{registryInstance.CreateEntity()};
-    treeB.Group(Groups::OBSTACLES);
-    treeB.AddComponent<TransformComponent>(glm::vec2{400.0, 495.0}, glm::vec2{1.0, 1.0}, 0.0);
-    treeB.AddComponent<SpriteComponent>(treeId, texSizeBase / 2, texSizeBase, 1);
-    treeB.AddComponent<BoxColliderComponent>(texSizeBase / 2, texSizeBase);
-
-    const std::string charriotFontId{"charriot-font"};
-    assetStoreInstance.AddFont(charriotFontId, "./assets/fonts/charriot.ttf", 20);
-    Entity label{registryInstance.CreateEntity()};
-    label.AddComponent<TextLabelComponent>(
-        glm::vec2(s_windowWidth / 2 - 40, 10.0), "CHOPPER 1.0", charriotFontId, SDL_Color{0, 255, 0}, true);
-}
-
-void Game::Setup()
-{
-    LoadLevel(1);
+    LevelLoader::GetInstance().LoadLevel("./assets/scripts/Level1.lua", m_renderer);
 }
 
 void Game::Update()
