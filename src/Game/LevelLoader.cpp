@@ -224,7 +224,7 @@ void LevelLoader::LoadLevel(const char* levelFile, SDL_Renderer* renderer)
         Logger::Err("Error while loading lua script: " + std::string(err.what()));
     }
 
-    lua.open_libraries(sol::lib::base);
+    lua.open_libraries(sol::lib::base, sol::lib::os);
     lua.script_file(levelFile);
 
     sol::table level = lua["Level"];

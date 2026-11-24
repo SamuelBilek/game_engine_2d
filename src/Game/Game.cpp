@@ -141,7 +141,7 @@ void Game::Setup()
     registryInstance.AddSystem<RenderHealthSystem>();
     registryInstance.AddSystem<RenderGUISystem>();
 
-    LevelLoader::GetInstance().LoadLevel("./assets/scripts/Level1.lua", m_renderer);
+    LevelLoader::GetInstance().LoadLevel("./assets/scripts/Level2.lua", m_renderer);
 }
 
 void Game::Update()
@@ -212,6 +212,8 @@ void Game::Destroy()
     ImGui_ImplSDLRenderer2_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
+
+    AssetStore::GetInstance().ClearAssets();
 
     SDL_DestroyRenderer(m_renderer);
     m_renderer = nullptr;
