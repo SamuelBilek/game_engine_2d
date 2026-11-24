@@ -85,7 +85,9 @@ void Game::Initialize()
     m_camera.w = s_windowWidth;
     m_camera.h = s_windowHeight;
 
-    // SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
+#ifndef DEBUG
+    SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
+#endif
 
     m_isRunning = true;
 }

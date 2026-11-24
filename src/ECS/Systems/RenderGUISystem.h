@@ -11,6 +11,7 @@
 #include <imgui.h>
 #include <imgui_impl_sdl2.h>
 #include <imgui_impl_sdlrenderer2.h>
+#include <iostream>
 
 class RenderGUISystem : public System
 {
@@ -131,6 +132,27 @@ class RenderGUISystem : public System
             ImGui::Text("Map coordinates (x=%.1f, y=%.1f)",
                         ImGui::GetIO().MousePos.x + camera.x,
                         ImGui::GetIO().MousePos.y + camera.y);
+        }
+        ImGui::End();
+
+        // Log messages window
+        ImGuiIO& io = ImGui::GetIO();
+
+        ImGui::SetNextWindowPos(ImVec2(10, io.DisplaySize.y - 250));
+        ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x - 20, 240));
+        if (ImGui::Begin("Log messages"))
+        {
+            const bool wasAtBottom = ImGui::GetScrollY() >= ImGui::GetScrollMaxY() - 1.0f;
+            for (const auto& message : Logger::GetMessages())
+            {
+                auto color{message.GetColor()};
+                ImGui::TextColored(ImVec4{color.r, color.g, color.b, color.a}, "%s", message.message.c_str());
+            }
+
+            if (wasAtBottom)
+            {
+                ImGui::SetScrollHereY(1.0f);
+            }
         }
         ImGui::End();
 

@@ -1,11 +1,12 @@
 #pragma once
 
+#include <glm.hpp>
 #include <string>
 #include <vector>
 
 enum class LogType
 {
-    LOG_INFO,
+    LOG_DEBUG,
     LOG_WARNING,
     LOG_ERROR,
     LOG_FATAL,
@@ -13,14 +14,19 @@ enum class LogType
 
 struct LogEntry
 {
-    LogType type{LogType::LOG_INFO};
+    LogType type{LogType::LOG_DEBUG};
     std::string message{};
+
+    glm::vec4 GetColor() const;
 };
 
 class Logger
 {
+  private:
+    inline static std::vector<LogEntry> m_messages{};
+
   public:
-    inline static std::vector<LogEntry> messages{};
+    static const std::vector<LogEntry>& GetMessages();
     static void Debug(const std::string& msg);
     static void Err(const std::string& msg);
     static void Warn(const std::string& msg);
