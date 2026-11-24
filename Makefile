@@ -2,6 +2,8 @@ CXX = g++
 SRC = $(shell find src -name '*.cpp')
 EXEC_NAME = gameengine.exe
 
+BUILD ?= debug
+
 DIST_DIR = dist
 ASSET_DIR = assets
 LIBS_DIR = libs
@@ -13,7 +15,13 @@ SOL_DIR = $(LIBS_DIR)/sol
 
 IMGUI_SRC = $(shell find $(IMGUI_DIR) -name '*.cpp')
 
-DBGFLAGS = -g -O0
+ifeq ($(BUILD), debug)
+	DBGFLAGS = -g -O0 -DDEBUG
+else ifeq ($(BUILD), release)
+	DBGFLAGS = -O2 -DNDEBUG
+else
+	$(error Uknown build configuration: $(BUILD))
+endif
 
 # We provide both the top level libs dir and individual subdirs
 # We want to include like <sol.hpp> but some library code uses <sol/sol.hpp> etc.
