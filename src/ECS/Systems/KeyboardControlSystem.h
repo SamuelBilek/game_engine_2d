@@ -44,18 +44,22 @@ class KeyboardControlSystem : public System
             switch (event.symbol)
             {
             case SDLK_UP:
+            case SDLK_w:
                 rigidBody.velocity = keyboardControl.upVelocity;
                 sprite.srcRect.y = sprite.height * UP;
                 break;
             case SDLK_RIGHT:
+            case SDLK_d:
                 rigidBody.velocity = keyboardControl.rightVelocity;
                 sprite.srcRect.y = sprite.height * RIGHT;
                 break;
             case SDLK_DOWN:
+            case SDLK_s:
                 rigidBody.velocity = keyboardControl.downVelocity;
                 sprite.srcRect.y = sprite.height * DOWN;
                 break;
             case SDLK_LEFT:
+            case SDLK_a:
                 rigidBody.velocity = keyboardControl.leftVelocity;
                 sprite.srcRect.y = sprite.height * LEFT;
                 break;
