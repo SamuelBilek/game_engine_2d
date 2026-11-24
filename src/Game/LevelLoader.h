@@ -17,4 +17,5 @@ class LevelLoader
     }
 
     void LoadLevel(const char* levelFile, SDL_Renderer* renderer);
+    void LoadRandomLevel(SDL_Renderer* renderer);
 };

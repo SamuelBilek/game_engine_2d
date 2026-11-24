@@ -145,7 +145,7 @@ void Game::Setup()
 
     registryInstance.GetSystem<ScriptSystem>().CreateLuaBindings();
 
-    LevelLoader::GetInstance().LoadLevel("./assets/scripts/Level2.lua", m_renderer);
+    LevelLoader::GetInstance().LoadRandomLevel(m_renderer);
 }
 
 void Game::Update()

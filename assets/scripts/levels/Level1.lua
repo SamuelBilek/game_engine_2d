@@ -1,6 +1,5 @@
 -- Assets to be loaded
-local tilemap_texture_day_id = "tilemap-texture-day"
-local tilemap_texture_night_id = "tilemap-texture-night"
+local tilemap_texture_id = "tilemap-texture"
 local chopper_texture_id = "chopper-texture"
 local su27_texture_id = "su27-texture"
 local f22_texture_id = "f22-texture"
@@ -75,17 +74,6 @@ local pico8_font_10_id = "pico8-font-10"
 local charriot_font_11_id = "charriot-font-11"
 local charriot_font_20_id = "charriot-font-20"
 
-
-local current_system_hour = os.date("*t").hour
-local map_texture_asset_id
-
-if current_system_hour >= 9 and current_system_hour < 18 then
-    map_texture_asset_id = tilemap_texture_day_id
-else
-    map_texture_asset_id = tilemap_texture_night_id
-end
-
-
 -- Define a table with the start values of the first level
 Level = {
     ----------------------------------------------------
@@ -93,8 +81,7 @@ Level = {
     ----------------------------------------------------
     assets = {
         [0] =
-        { type = "texture", id = tilemap_texture_day_id, file = "./assets/tilemaps/jungle.png" },
-        { type = "texture", id = tilemap_texture_night_id,       file = "./assets/tilemaps/jungle-night.png" },
+        { type = "texture", id = tilemap_texture_id, file = "./assets/tilemaps/jungle.png" },
         { type = "texture", id = chopper_texture_id,             file = "./assets/images/chopper-green-spritesheet.png" },
         { type = "texture", id = su27_texture_id,                file = "./assets/images/su27-spritesheet.png" },
         { type = "texture", id = f22_texture_id,                 file = "./assets/images/f22-spritesheet.png" },
@@ -175,7 +162,7 @@ Level = {
     ----------------------------------------------------
     tilemap = {
         map_file = "./assets/tilemaps/jungle.map",
-        texture_asset_id = map_texture_asset_id,
+        texture_asset_id = tilemap_texture_id,
         num_rows = 20,
         num_cols = 25,
         tile_size = 32,

@@ -21,10 +21,13 @@
 #include "LevelLoader.h"
 #include <SDL.h>
 #include <SDL_image.h>
+#include <filesystem>
 #include <fstream>
+#include <random>
 #include <sol.hpp>
 #include <sstream>
 #include <string>
+#include <vector>
 
 void LoadAssets(sol::table& level, SDL_Renderer* renderer)
 {
@@ -241,4 +244,26 @@ void LevelLoader::LoadLevel(const char* levelFile, SDL_Renderer* renderer)
     LoadAssets(level, renderer);
     LoadTileMap(level);
     LoadEntities(level);
+}
+
+void LevelLoader::LoadRandomLevel(SDL_Renderer* renderer)
+{
+    std::vector<std::string> levels{};
+
+    namespace fs = std::filesystem;
+
+    for (const auto& entry : fs::directory_iterator("./assets/scripts/levels"))
+    {
+        if (entry.is_regular_file())
+        {
+            levels.push_back(fs::absolute(entry.path()).string());
+        }
+    }
+
+    std::mt19937 gen{std::random_device{}()};
+    std::uniform_int_distribution<std::size_t> dist{0, levels.size() - 1};
+
+    std::string result = levels[dist(gen)];
+
+    LevelLoader::GetInstance().LoadLevel(result.c_str(), renderer);
 }
