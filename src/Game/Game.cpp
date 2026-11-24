@@ -18,6 +18,7 @@
 #include "../ECS/Systems/RenderHealthSystem.h"
 #include "../ECS/Systems/RenderSystem.h"
 #include "../ECS/Systems/RenderTextSystem.h"
+#include "../ECS/Systems/ScriptSystem.h"
 #include "../Events/KeyPressedEvent.h"
 #include "../Logger/Logger.h"
 #include "LevelLoader.h"
@@ -140,6 +141,9 @@ void Game::Setup()
     registryInstance.AddSystem<RenderTextSystem>();
     registryInstance.AddSystem<RenderHealthSystem>();
     registryInstance.AddSystem<RenderGUISystem>();
+    registryInstance.AddSystem<ScriptSystem>();
+
+    registryInstance.GetSystem<ScriptSystem>().CreateLuaBindings();
 
     LevelLoader::GetInstance().LoadLevel("./assets/scripts/Level2.lua", m_renderer);
 }
@@ -174,6 +178,7 @@ void Game::Update()
     registryInstance.GetSystem<ProjectileEmitSystem>().Update();
     registryInstance.GetSystem<ProjectileLifecycleSystem>().Update();
     registryInstance.GetSystem<CameraMovementSystem>().Update(m_camera);
+    registryInstance.GetSystem<ScriptSystem>().Update(deltaTime, SDL_GetTicks());
 }
 
 void Game::Render()

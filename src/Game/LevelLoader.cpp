@@ -7,6 +7,7 @@
 #include "../ECS/Components/KeyboardControlledComponent.h"
 #include "../ECS/Components/ProjectileEmitterComponent.h"
 #include "../ECS/Components/RigidBodyComponent.h"
+#include "../ECS/Components/ScriptComponent.h"
 #include "../ECS/Components/SpriteComponent.h"
 #include "../ECS/Components/TextLabelComponent.h"
 #include "../ECS/Components/TransformComponent.h"
@@ -115,10 +116,12 @@ void LoadEntities(sol::table& level)
         sol::optional<sol::table> collider{components.value().get<sol::optional<sol::table>>("boxcollider")};
         if (collider != sol::nullopt)
         {
-            sol::table offset{collider.value().get<sol::table>("offset")};
-            newEntity.AddComponent<BoxColliderComponent>(collider.value().get<int>("width"),
-                                                         collider.value().get<int>("height"),
-                                                         glm::vec2(offset.get_or("x", 0.0f), offset.get_or("y", 0.0f)));
+            sol::optional<sol::table> offset{collider.value().get<sol::optional<sol::table>>("offset")};
+            newEntity.AddComponent<BoxColliderComponent>(
+                collider.value().get<int>("width"),
+                collider.value().get<int>("height"),
+                glm::vec2(offset.has_value() ? offset.value().get_or("x", 0.0f) : 0.0f,
+                          offset.has_value() ? offset.value().get_or("y", 0.0f) : 0.0f));
         }
 
         sol::optional<sol::table> health{components.value().get<sol::optional<sol::table>>("health")};
@@ -168,6 +171,12 @@ void LoadEntities(sol::table& level)
                 glm::vec2(right_velocity.get<float>("x"), right_velocity.get<float>("y")),
                 glm::vec2(down_velocity.get<float>("x"), down_velocity.get<float>("y")),
                 glm::vec2(left_velocity.get<float>("x"), left_velocity.get<float>("y")));
+        }
+
+        sol::optional<sol::table> script{components.value().get<sol::optional<sol::table>>("on_update_script")};
+        if (script != sol::nullopt)
+        {
+            newEntity.AddComponent<ScriptComponent>(script.value().get<sol::function>(0));
         }
     }
 }
@@ -224,7 +233,7 @@ void LevelLoader::LoadLevel(const char* levelFile, SDL_Renderer* renderer)
         Logger::Err("Error while loading lua script: " + std::string(err.what()));
     }
 
-    lua.open_libraries(sol::lib::base, sol::lib::os);
+    lua.open_libraries(sol::lib::base, sol::lib::math, sol::lib::os);
     lua.script_file(levelFile);
 
     sol::table level = lua["Level"];
