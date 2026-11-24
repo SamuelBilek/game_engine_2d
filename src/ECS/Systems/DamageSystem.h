@@ -76,7 +76,7 @@ class DamageSystem : public System
 
         projectile.Kill();
 
-        Logger::Log("Projectile id " + std::to_string(projectile.GetId()) + " hit target " +
-                    std::to_string(target.GetId()));
+        Logger::Debug("Projectile id " + std::to_string(projectile.GetId()) + " hit target " +
+                      std::to_string(target.GetId()));
     }
 };

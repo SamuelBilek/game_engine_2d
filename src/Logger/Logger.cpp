@@ -17,12 +17,14 @@ static std::string CurrentDateTimeToString()
     return output;
 }
 
-void Logger::Log(const std::string& msg)
+void Logger::Debug(const std::string& msg)
 {
-    std::string output = "LOG: [" + CurrentDateTimeToString() + "]: " + msg;
+#ifdef DEBUG
+    std::string output = "DEBUG: [" + CurrentDateTimeToString() + "]: " + msg;
     LogEntry logEntry{LogType::LOG_INFO, output};
     messages.push_back(logEntry);
     std::cout << GREEN << output << NO_COLOR << std::endl;
+#endif
 }
 
 void Logger::Err(const std::string& msg)
