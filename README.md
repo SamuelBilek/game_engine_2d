@@ -1,9 +1,10 @@
 # game_engine_2d
 
-Simple 2D Game Engine (+ game) written in C++, based on the course from: `https://courses.pikuma.com/courses/take/2dgameengine`
+Simple 2D Game Engine (+ game) written in C++, based on the course from: `https://pikuma.com/courses/cpp-2d-game-engine-development`
 
 Tech stack:
 
+- C++ 20
 - SDL 2.32.10 (extensions SDL_image, SDL_mixer, SDL_ttf)
 - GLM 1.0.3
 - ImGui 1.93.0 (SDL2 backend)
